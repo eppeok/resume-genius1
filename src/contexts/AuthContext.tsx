@@ -7,6 +7,9 @@ interface Profile {
   email: string;
   full_name: string | null;
   credits: number;
+  phone: string | null;
+  location: string | null;
+  linkedin_url: string | null;
 }
 
 interface AuthContextType {

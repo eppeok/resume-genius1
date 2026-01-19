@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle, Mail, Phone, MapPin } from "lucide-react";
+import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle, Mail, Phone, MapPin, Linkedin } from "lucide-react";
 import { parseResumeFile, getSupportedFileTypes } from "@/lib/parseResume";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ResumeFormProps {
   onSubmit: (data: FormData) => void;
@@ -18,6 +19,7 @@ export interface FormData {
   email: string;
   phone: string;
   location: string;
+  linkedinUrl: string;
   currentRole: string;
   targetRole: string;
   currentResume: string;
@@ -26,11 +28,13 @@ export interface FormData {
 
 export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     email: "",
     phone: "",
     location: "",
+    linkedinUrl: "",
     currentRole: "",
     targetRole: "",
     currentResume: "",
@@ -38,6 +42,20 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
   });
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+  // Auto-fill from profile on mount
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: prev.fullName || profile.full_name || "",
+        email: prev.email || profile.email || "",
+        phone: prev.phone || profile.phone || "",
+        location: prev.location || profile.location || "",
+        linkedinUrl: prev.linkedinUrl || profile.linkedin_url || "",
+      }));
+    }
+  }, [profile]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -123,7 +141,7 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
             </div>
           </div>
           
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-1.5">
                 <Mail className="h-3.5 w-3.5 text-muted-foreground" />
@@ -154,6 +172,9 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                 maxLength={30}
               />
             </div>
+          </div>
+          
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="location" className="flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
@@ -166,6 +187,21 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                 onChange={(e) => handleChange("location", e.target.value)}
                 className="bg-background"
                 maxLength={100}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="linkedinUrl" className="flex items-center gap-1.5">
+                <Linkedin className="h-3.5 w-3.5 text-muted-foreground" />
+                LinkedIn Profile
+              </Label>
+              <Input
+                id="linkedinUrl"
+                type="url"
+                placeholder="linkedin.com/in/yourprofile"
+                value={formData.linkedinUrl}
+                onChange={(e) => handleChange("linkedinUrl", e.target.value)}
+                className="bg-background"
+                maxLength={200}
               />
             </div>
           </div>
