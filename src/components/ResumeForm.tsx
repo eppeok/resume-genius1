@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle } from "lucide-react";
+import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle, Mail, Phone, MapPin } from "lucide-react";
 import { parseResumeFile, getSupportedFileTypes } from "@/lib/parseResume";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +15,9 @@ interface ResumeFormProps {
 
 export interface FormData {
   fullName: string;
+  email: string;
+  phone: string;
+  location: string;
   currentRole: string;
   targetRole: string;
   currentResume: string;
@@ -25,6 +28,9 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
+    email: "",
+    phone: "",
+    location: "",
     currentRole: "",
     targetRole: "",
     currentResume: "",
@@ -101,6 +107,7 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                 value={formData.fullName}
                 onChange={(e) => handleChange("fullName", e.target.value)}
                 className="bg-background"
+                maxLength={100}
               />
             </div>
             <div className="space-y-2">
@@ -111,6 +118,54 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                 value={formData.currentRole}
                 onChange={(e) => handleChange("currentRole", e.target.value)}
                 className="bg-background"
+                maxLength={100}
+              />
+            </div>
+          </div>
+          
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                className="bg-background"
+                maxLength={255}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="flex items-center gap-1.5">
+                <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                Phone
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="(555) 123-4567"
+                value={formData.phone}
+                onChange={(e) => handleChange("phone", e.target.value)}
+                className="bg-background"
+                maxLength={30}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location" className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                Location
+              </Label>
+              <Input
+                id="location"
+                placeholder="City, State"
+                value={formData.location}
+                onChange={(e) => handleChange("location", e.target.value)}
+                className="bg-background"
+                maxLength={100}
               />
             </div>
           </div>

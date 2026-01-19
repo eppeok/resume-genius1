@@ -149,10 +149,17 @@ const styles = StyleSheet.create({
   },
 });
 
+interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
 interface ModernTemplateProps {
   content: string;
   fullName: string;
   targetRole: string;
+  contactInfo?: ContactInfo;
 }
 
 interface ParsedSection {
@@ -215,7 +222,7 @@ function extractSkills(content: string[]): string[] {
   return skills.slice(0, 10);
 }
 
-export function ModernTemplate({ content, fullName, targetRole }: ModernTemplateProps) {
+export function ModernTemplate({ content, fullName, targetRole, contactInfo }: ModernTemplateProps) {
   const sections = parseMarkdown(content);
   const skillsSection = sections.find(s => s.type === "skills");
   const skills = skillsSection ? extractSkills(skillsSection.content) : [];
@@ -234,19 +241,15 @@ export function ModernTemplate({ content, fullName, targetRole }: ModernTemplate
             <Text style={styles.sidebarSectionTitle}>Contact</Text>
             <View style={styles.contactItem}>
               <Text style={styles.contactIcon}>✉</Text>
-              <Text style={styles.contactText}>email@example.com</Text>
+              <Text style={styles.contactText}>{contactInfo?.email || "email@example.com"}</Text>
             </View>
             <View style={styles.contactItem}>
               <Text style={styles.contactIcon}>☎</Text>
-              <Text style={styles.contactText}>(555) 123-4567</Text>
+              <Text style={styles.contactText}>{contactInfo?.phone || "(555) 123-4567"}</Text>
             </View>
             <View style={styles.contactItem}>
               <Text style={styles.contactIcon}>◎</Text>
-              <Text style={styles.contactText}>City, State</Text>
-            </View>
-            <View style={styles.contactItem}>
-              <Text style={styles.contactIcon}>⚯</Text>
-              <Text style={styles.contactText}>linkedin.com/in/profile</Text>
+              <Text style={styles.contactText}>{contactInfo?.location || "City, State"}</Text>
             </View>
           </View>
           
