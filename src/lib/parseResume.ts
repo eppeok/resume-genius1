@@ -1,8 +1,4 @@
 import mammoth from "mammoth";
-import * as pdfjsLib from "pdfjs-dist";
-
-// Set up PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js`;
 
 export async function parseResumeFile(file: File): Promise<string> {
   const fileType = file.type;
@@ -28,8 +24,13 @@ export async function parseResumeFile(file: File): Promise<string> {
     throw new Error("Old .doc format is not supported. Please save as .docx or .pdf");
   }
 
-  // Handle PDF files
+  // Handle PDF files - dynamic import to avoid top-level await issues
   if (fileType === "application/pdf" || fileName.endsWith(".pdf")) {
+    const pdfjsLib = await import("pdfjs-dist");
+    
+    // Set up PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js`;
+    
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     
