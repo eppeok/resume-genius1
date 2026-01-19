@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Check, Loader2, Zap, Star, Crown } from "lucide-react";
 
 const creditPacks = [
@@ -41,19 +42,28 @@ export default function BuyCredits() {
   const { toast } = useToast();
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
 
-  const handlePurchase = async (packId: string, credits: number, price: number) => {
+  const handlePurchase = async (packId: string) => {
     setLoadingPack(packId);
 
     try {
+      // Get the user's session token for proper authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error("You must be logged in to purchase credits");
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({ credits, price }),
+          // Only send pack_id - server validates and determines price/credits
+          body: JSON.stringify({ pack_id: packId }),
         }
       );
 
@@ -138,7 +148,7 @@ export default function BuyCredits() {
                 <Button
                   variant={pack.popular ? "hero" : "outline"}
                   className="w-full"
-                  onClick={() => handlePurchase(pack.id, pack.credits, pack.price)}
+                  onClick={() => handlePurchase(pack.id)}
                   disabled={loadingPack !== null}
                 >
                   {loadingPack === pack.id ? (
