@@ -185,7 +185,7 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                 <>
                   <Upload className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    Upload DOCX or TXT
+                    Upload PDF, DOCX, or TXT
                   </span>
                 </>
               )}
