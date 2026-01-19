@@ -14,16 +14,192 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          price_paid: number
+          stripe_session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          price_paid: number
+          stripe_session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          price_paid?: number
+          stripe_session_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          credits: number
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      resumes: {
+        Row: {
+          ats_score_after: number | null
+          ats_score_before: number | null
+          created_at: string
+          formatting_score_after: number | null
+          formatting_score_before: number | null
+          full_name: string | null
+          id: string
+          job_description: string
+          keyword_match_after: number | null
+          keyword_match_before: number | null
+          optimized_resume: string | null
+          original_resume: string
+          readability_after: number | null
+          readability_before: number | null
+          section_score_after: number | null
+          section_score_before: number | null
+          target_role: string
+          template_used: string | null
+          updated_at: string
+          user_current_role: string | null
+          user_id: string
+        }
+        Insert: {
+          ats_score_after?: number | null
+          ats_score_before?: number | null
+          created_at?: string
+          formatting_score_after?: number | null
+          formatting_score_before?: number | null
+          full_name?: string | null
+          id?: string
+          job_description: string
+          keyword_match_after?: number | null
+          keyword_match_before?: number | null
+          optimized_resume?: string | null
+          original_resume: string
+          readability_after?: number | null
+          readability_before?: number | null
+          section_score_after?: number | null
+          section_score_before?: number | null
+          target_role: string
+          template_used?: string | null
+          updated_at?: string
+          user_current_role?: string | null
+          user_id: string
+        }
+        Update: {
+          ats_score_after?: number | null
+          ats_score_before?: number | null
+          created_at?: string
+          formatting_score_after?: number | null
+          formatting_score_before?: number | null
+          full_name?: string | null
+          id?: string
+          job_description?: string
+          keyword_match_after?: number | null
+          keyword_match_before?: number | null
+          optimized_resume?: string | null
+          original_resume?: string
+          readability_after?: number | null
+          readability_before?: number | null
+          section_score_after?: number | null
+          section_score_before?: number | null
+          target_role?: string
+          template_used?: string | null
+          updated_at?: string
+          user_current_role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resumes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_credits: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
+      deduct_credit: { Args: { p_user_id: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +326,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
