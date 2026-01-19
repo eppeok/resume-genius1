@@ -429,6 +429,9 @@ export default function Optimize() {
           onOpenChange={setShowTemplateSelector}
           onSelect={handleDownloadPDF}
           isDownloading={isDownloading}
+          resumeContent={optimizedResume}
+          fullName={formData?.fullName}
+          targetRole={formData?.targetRole}
         />
       </div>
     </div>
