@@ -64,8 +64,27 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Get origin from request
-    const origin = req.headers.get("origin") || "http://localhost:5173";
+    // SECURITY: Validate origin against allowlist to prevent open redirect attacks
+    const ALLOWED_ORIGINS = [
+      "https://resume-genius1.lovable.app",
+      "https://id-preview--b35e338f-bffc-44f3-9115-efb92e2a0458.lovable.app",
+      "http://localhost:5173",
+      "http://localhost:4173",
+      "http://localhost:8080",
+    ];
+    
+    const requestOrigin = req.headers.get("origin");
+    let origin: string;
+    
+    if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+      origin = requestOrigin;
+    } else {
+      // Default to production domain for untrusted origins
+      if (requestOrigin) {
+        console.warn(`Rejected untrusted origin: ${requestOrigin}`);
+      }
+      origin = "https://resume-genius1.lovable.app";
+    }
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({

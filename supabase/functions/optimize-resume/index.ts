@@ -72,6 +72,70 @@ serve(async (req) => {
 
     const { fullName, currentRole, targetRole, currentResume, jobDescription } = await req.json() as ResumeRequest;
     
+    // SECURITY: Input validation
+    const MAX_RESUME_LENGTH = 50000; // ~10 pages
+    const MAX_JOB_DESC_LENGTH = 10000;
+    const MAX_NAME_LENGTH = 200;
+    const MAX_ROLE_LENGTH = 200;
+
+    if (!currentResume || typeof currentResume !== 'string' || currentResume.trim().length === 0) {
+      // Refund credit for invalid input
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Resume is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (currentResume.length > MAX_RESUME_LENGTH) {
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Resume exceeds maximum length of 50KB" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Job description is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (jobDescription.length > MAX_JOB_DESC_LENGTH) {
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Job description exceeds maximum length of 10KB" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate optional string fields
+    if (fullName && (typeof fullName !== 'string' || fullName.length > MAX_NAME_LENGTH)) {
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Full name exceeds maximum length" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (currentRole && (typeof currentRole !== 'string' || currentRole.length > MAX_ROLE_LENGTH)) {
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Current role exceeds maximum length" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (targetRole && (typeof targetRole !== 'string' || targetRole.length > MAX_ROLE_LENGTH)) {
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      return new Response(
+        JSON.stringify({ error: "Target role exceeds maximum length" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       // Refund the credit if we can't process
