@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 
 const primaryColor = "#0066cc";
 const accentColor = "#00a8e8";
@@ -255,7 +255,9 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             {contactInfo?.linkedinUrl && (
               <View style={styles.contactItem}>
                 <Text style={styles.contactIcon}>⚯</Text>
-                <Text style={styles.contactText}>{contactInfo.linkedinUrl}</Text>
+                <Link src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} style={styles.contactText}>
+                  {contactInfo.linkedinUrl}
+                </Link>
               </View>
             )}
           </View>
