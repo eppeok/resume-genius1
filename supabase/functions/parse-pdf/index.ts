@@ -147,6 +147,22 @@ function isUsableResumeText(text: string): boolean {
 }
 
 /**
+ * Convert Uint8Array to base64 string safely (handles large files)
+ */
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  // Process in chunks to avoid stack overflow
+  const CHUNK_SIZE = 8192;
+  let result = "";
+  
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+    result += String.fromCharCode.apply(null, Array.from(chunk));
+  }
+  
+  return btoa(result);
+}
+
+/**
  * Extract text from PDF using AI vision model (OCR)
  */
 async function extractTextWithAI(bytes: Uint8Array): Promise<string> {
@@ -158,8 +174,8 @@ async function extractTextWithAI(bytes: Uint8Array): Promise<string> {
   }
 
   try {
-    // Convert PDF bytes to base64
-    const base64PDF = btoa(String.fromCharCode(...bytes));
+    // Convert PDF bytes to base64 safely
+    const base64PDF = uint8ArrayToBase64(bytes);
     
     console.log("Calling AI OCR, PDF base64 length:", base64PDF.length);
     
