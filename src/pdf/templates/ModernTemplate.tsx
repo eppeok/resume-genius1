@@ -242,7 +242,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             <Text style={styles.sidebarSectionTitle}>Contact</Text>
             <View style={styles.contactItem}>
               <Text style={styles.contactIcon}>✉</Text>
-              <Text style={styles.contactText}>{contactInfo?.email || "email@example.com"}</Text>
+              <Link src={`mailto:${contactInfo?.email || "email@example.com"}`} style={styles.contactText}>{contactInfo?.email || "email@example.com"}</Link>
             </View>
             <View style={styles.contactItem}>
               <Text style={styles.contactIcon}>☎</Text>

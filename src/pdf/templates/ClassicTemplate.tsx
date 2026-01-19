@@ -202,7 +202,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
           <Text style={styles.name}>{fullName || "Your Name"}</Text>
           <Text style={styles.title}>{targetRole || "Professional Title"}</Text>
         <View style={styles.contactRow}>
-            <Text style={styles.contactItem}>📧 {contactInfo?.email || "email@example.com"}</Text>
+            <Link src={`mailto:${contactInfo?.email || "email@example.com"}`} style={styles.contactItem}>📧 {contactInfo?.email || "email@example.com"}</Link>
             <Text style={styles.contactItem}>📱 {contactInfo?.phone || "(555) 123-4567"}</Text>
             <Text style={styles.contactItem}>📍 {contactInfo?.location || "City, State"}</Text>
             {contactInfo?.linkedinUrl && (
