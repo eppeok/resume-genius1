@@ -24,37 +24,18 @@ export async function parseResumeFile(file: File): Promise<string> {
     throw new Error("Old .doc format is not supported. Please save as .docx or .pdf");
   }
 
-  // Handle PDF files - dynamic import to avoid top-level await issues
+  // Handle PDF files - inform user to use text-based formats
   if (fileType === "application/pdf" || fileName.endsWith(".pdf")) {
-    const pdfjsLib = await import("pdfjs-dist");
-    
-    // Set up PDF.js worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js`;
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    
-    let fullText = "";
-    
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(" ");
-      fullText += pageText + "\n\n";
-    }
-    
-    return fullText.trim();
+    throw new Error("PDF parsing is not supported in the browser. Please copy and paste your resume text directly, or save your resume as .docx or .txt format.");
   }
 
   throw new Error(`Unsupported file type: ${fileType || fileName}`);
 }
 
 export function getSupportedFileTypes(): string {
-  return ".txt,.pdf,.docx";
+  return ".txt,.docx";
 }
 
 export function getAcceptedMimeTypes(): string {
-  return "text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  return "text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 }
