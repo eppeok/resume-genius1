@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { ResumeForm, FormData } from "@/components/ResumeForm";
@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { generatePDF, downloadPDF, TemplateName } from "@/pdf/PDFGenerator";
 import ReactMarkdown from "react-markdown";
 import { 
-  FileCheck, Download, Copy, RefreshCw, ArrowRight, 
+  FileCheck, Download, Copy, RefreshCw, 
   Loader2, TrendingUp, Sparkles, AlertCircle 
 } from "lucide-react";
 
@@ -27,7 +27,7 @@ interface ATSScores {
 }
 
 export default function Optimize() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -41,13 +41,17 @@ export default function Optimize() {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const analyzeResume = async (resume: string, jobDescription: string): Promise<ATSScores> => {
+    // Use authenticated request
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-ats`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${currentSession?.access_token || ""}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ resume, jobDescription }),
       }
@@ -80,10 +84,13 @@ export default function Optimize() {
       const scores = await analyzeResume(data.currentResume, data.jobDescription);
       setOriginalScores(scores);
       
-      // Now optimize the resume
+      // Now optimize the resume (credit is deducted server-side)
       setStep("optimizing");
       setIsStreaming(true);
       setOptimizedResume("");
+
+      // Use authenticated request
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/optimize-resume`,
@@ -91,7 +98,8 @@ export default function Optimize() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            Authorization: `Bearer ${currentSession?.access_token || ""}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           body: JSON.stringify(data),
         }
@@ -149,13 +157,7 @@ export default function Optimize() {
       const optimizedScoresResult = await analyzeResume(fullContent, data.jobDescription);
       setOptimizedScores(optimizedScoresResult);
 
-      // Deduct credit and save resume
-      const { error: rpcError } = await supabase.rpc("deduct_credit", { p_user_id: profile.id });
-      if (rpcError) {
-        console.error("Failed to deduct credit:", rpcError);
-      }
-
-      // Save to database
+      // Save to database (credit already deducted server-side)
       await supabase.from("resumes").insert({
         user_id: profile.id,
         original_resume: data.currentResume,
@@ -176,7 +178,7 @@ export default function Optimize() {
         readability_after: optimizedScoresResult.readability,
       });
 
-      // Refresh profile to update credits
+      // Refresh profile to update credits display
       await refreshProfile();
 
       setStep("result");
@@ -193,6 +195,8 @@ export default function Optimize() {
       });
       setStep("form");
       setIsStreaming(false);
+      // Refresh profile in case credit was deducted before failure
+      await refreshProfile();
     }
   }, [profile, toast, navigate, refreshProfile]);
 

@@ -11,6 +11,12 @@ serve(async (req) => {
     return new Response("Stripe not configured", { status: 500 });
   }
 
+  // SECURITY: Always require webhook secret in production
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET not configured - webhook verification required");
+    return new Response("Webhook secret required", { status: 500 });
+  }
+
   const stripe = new Stripe(stripeKey, {
     apiVersion: "2023-10-16",
   });
@@ -18,15 +24,16 @@ serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
 
+  // SECURITY: Always require signature
+  if (!signature) {
+    console.error("Missing stripe-signature header");
+    return new Response("Missing signature", { status: 400 });
+  }
+
   let event: Stripe.Event;
 
   try {
-    if (webhookSecret && signature) {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } else {
-      // For testing without webhook signature verification
-      event = JSON.parse(body);
-    }
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
     console.error("Webhook signature verification failed:", err);
     return new Response(`Webhook Error: ${err instanceof Error ? err.message : "Unknown"}`, { status: 400 });
