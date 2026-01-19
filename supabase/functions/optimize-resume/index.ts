@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,10 +20,62 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Verify authentication
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Verify user has credits before processing (using service role)
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminSupabase = createClient(supabaseUrl, serviceRoleKey);
+
+    const { data: profile, error: profileError } = await adminSupabase
+      .from("profiles")
+      .select("credits")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile || profile.credits < 1) {
+      return new Response(
+        JSON.stringify({ error: "Insufficient credits" }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SECURITY: Deduct credit server-side BEFORE processing
+    const { error: deductError } = await adminSupabase.rpc("deduct_credit", { p_user_id: user.id });
+    if (deductError) {
+      console.error("Failed to deduct credit:", deductError);
+      return new Response(
+        JSON.stringify({ error: "Failed to process payment" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { fullName, currentRole, targetRole, currentResume, jobDescription } = await req.json() as ResumeRequest;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
+      // Refund the credit if we can't process
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
@@ -77,6 +130,9 @@ Please provide an ATS-optimized version of this resume tailored for the job desc
     });
 
     if (!response.ok) {
+      // Refund the credit if AI call fails
+      await adminSupabase.rpc("add_credits", { p_user_id: user.id, p_amount: 1 });
+      
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
           status: 429,
