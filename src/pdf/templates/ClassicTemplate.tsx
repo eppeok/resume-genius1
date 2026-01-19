@@ -1,61 +1,117 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 
-// Use built-in Helvetica font - no registration needed for standard PDF fonts
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontSize: 11,
+    paddingTop: 50,
+    fontSize: 10,
     fontFamily: "Helvetica",
     lineHeight: 1.5,
+    backgroundColor: "#ffffff",
   },
   header: {
     marginBottom: 20,
+    textAlign: "center",
+    paddingBottom: 15,
     borderBottomWidth: 2,
-    borderBottomColor: "#333",
-    paddingBottom: 10,
+    borderBottomColor: "#1a365d",
   },
   name: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1a1a1a",
-    marginBottom: 4,
+    fontSize: 26,
+    fontFamily: "Helvetica-Bold",
+    color: "#1a365d",
+    marginBottom: 6,
+    letterSpacing: 2,
+    textTransform: "uppercase",
   },
   title: {
-    fontSize: 14,
-    color: "#666",
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
-    textTransform: "uppercase",
+    fontSize: 12,
+    color: "#4a5568",
+    marginBottom: 10,
     letterSpacing: 1,
   },
-  paragraph: {
-    marginBottom: 6,
-    color: "#444",
+  contactRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+    fontSize: 9,
+    color: "#4a5568",
   },
-  bulletList: {
-    paddingLeft: 15,
+  contactItem: {
+    color: "#4a5568",
+  },
+  section: {
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    color: "#1a365d",
+    marginBottom: 8,
+    paddingBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#cbd5e0",
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+  },
+  paragraph: {
+    marginBottom: 5,
+    color: "#2d3748",
+    textAlign: "justify",
+  },
+  experienceBlock: {
+    marginBottom: 10,
+  },
+  jobHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 3,
+  },
+  jobTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#2d3748",
+  },
+  jobDate: {
+    fontSize: 9,
+    color: "#718096",
+    fontStyle: "italic",
+  },
+  company: {
+    fontSize: 10,
+    color: "#4a5568",
+    marginBottom: 4,
   },
   bulletItem: {
-    marginBottom: 4,
-    color: "#444",
+    marginBottom: 3,
+    color: "#2d3748",
+    paddingLeft: 12,
+    position: "relative",
   },
-  skillsGrid: {
+  bullet: {
+    position: "absolute",
+    left: 0,
+    color: "#1a365d",
+  },
+  skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 6,
+    marginTop: 4,
   },
-  skill: {
-    backgroundColor: "#f0f0f0",
-    padding: "4 8",
+  skillTag: {
+    backgroundColor: "#edf2f7",
+    paddingVertical: 3,
+    paddingHorizontal: 8,
     borderRadius: 3,
-    fontSize: 10,
+    fontSize: 9,
+    color: "#2d3748",
+  },
+  summaryText: {
+    color: "#2d3748",
+    textAlign: "justify",
+    lineHeight: 1.6,
+    marginBottom: 4,
   },
 });
 
@@ -65,9 +121,15 @@ interface ClassicTemplateProps {
   targetRole: string;
 }
 
-function parseMarkdown(markdown: string) {
-  const sections: { title: string; content: string[] }[] = [];
-  let currentSection = { title: "", content: [] as string[] };
+interface ParsedSection {
+  title: string;
+  content: string[];
+  type: "summary" | "experience" | "education" | "skills" | "other";
+}
+
+function parseMarkdown(markdown: string): ParsedSection[] {
+  const sections: ParsedSection[] = [];
+  let currentSection: ParsedSection = { title: "", content: [], type: "other" };
   
   const lines = markdown.split("\n");
   
@@ -76,7 +138,21 @@ function parseMarkdown(markdown: string) {
       if (currentSection.title || currentSection.content.length) {
         sections.push(currentSection);
       }
-      currentSection = { title: line.replace("## ", "").replace(/\*\*/g, ""), content: [] };
+      const title = line.replace("## ", "").replace(/\*\*/g, "").trim();
+      const lowerTitle = title.toLowerCase();
+      let type: ParsedSection["type"] = "other";
+      
+      if (lowerTitle.includes("summary") || lowerTitle.includes("objective") || lowerTitle.includes("profile")) {
+        type = "summary";
+      } else if (lowerTitle.includes("experience") || lowerTitle.includes("work") || lowerTitle.includes("employment")) {
+        type = "experience";
+      } else if (lowerTitle.includes("education") || lowerTitle.includes("academic")) {
+        type = "education";
+      } else if (lowerTitle.includes("skill") || lowerTitle.includes("competenc") || lowerTitle.includes("technical")) {
+        type = "skills";
+      }
+      
+      currentSection = { title, content: [], type };
     } else if (line.startsWith("# ")) {
       // Skip main title
     } else if (line.trim()) {
@@ -91,30 +167,78 @@ function parseMarkdown(markdown: string) {
   return sections;
 }
 
+function extractSkills(content: string[]): string[] {
+  const skills: string[] = [];
+  for (const line of content) {
+    // Split by common delimiters
+    const parts = line.split(/[,;|•·]/);
+    for (const part of parts) {
+      const cleaned = part.replace(/^[-•]\s*/, "").trim();
+      if (cleaned && cleaned.length < 40) {
+        skills.push(cleaned);
+      }
+    }
+  }
+  return skills.slice(0, 15); // Limit to 15 skills
+}
+
 export function ClassicTemplate({ content, fullName, targetRole }: ClassicTemplateProps) {
   const sections = parseMarkdown(content);
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.name}>{fullName || "Your Name"}</Text>
           <Text style={styles.title}>{targetRole || "Professional Title"}</Text>
+          <View style={styles.contactRow}>
+            <Text style={styles.contactItem}>📧 email@example.com</Text>
+            <Text style={styles.contactItem}>📱 (555) 123-4567</Text>
+            <Text style={styles.contactItem}>📍 City, State</Text>
+          </View>
         </View>
 
+        {/* Content Sections */}
         {sections.map((section, index) => (
           <View key={index} style={styles.section}>
             {section.title && (
               <Text style={styles.sectionTitle}>{section.title}</Text>
             )}
-            {section.content.map((line, lineIndex) => (
-              <Text 
-                key={lineIndex} 
-                style={line.startsWith("-") || line.startsWith("•") ? styles.bulletItem : styles.paragraph}
-              >
-                {line.startsWith("-") || line.startsWith("•") ? `• ${line.slice(1).trim()}` : line}
-              </Text>
-            ))}
+            
+            {section.type === "summary" && (
+              <View>
+                {section.content.map((line, lineIndex) => (
+                  <Text key={lineIndex} style={styles.summaryText}>
+                    {line.replace(/^[-•]\s*/, "")}
+                  </Text>
+                ))}
+              </View>
+            )}
+            
+            {section.type === "skills" && (
+              <View style={styles.skillsContainer}>
+                {extractSkills(section.content).map((skill, skillIndex) => (
+                  <Text key={skillIndex} style={styles.skillTag}>{skill}</Text>
+                ))}
+              </View>
+            )}
+            
+            {(section.type === "experience" || section.type === "education" || section.type === "other") && (
+              <View>
+                {section.content.map((line, lineIndex) => {
+                  const isBullet = line.startsWith("-") || line.startsWith("•");
+                  return (
+                    <Text 
+                      key={lineIndex} 
+                      style={isBullet ? styles.bulletItem : styles.paragraph}
+                    >
+                      {isBullet ? `• ${line.slice(1).trim()}` : line}
+                    </Text>
+                  );
+                })}
+              </View>
+            )}
           </View>
         ))}
       </Page>
