@@ -1,8 +1,8 @@
-import { useState, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
-import { ResumeForm, FormData } from "@/components/ResumeForm";
-import { ResumeOutput } from "@/components/ResumeOutput";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Sparkles, CheckCircle, Zap, FileText } from "lucide-react";
 
 const Index = () => {
   const [optimizedResume, setOptimizedResume] = useState("");
