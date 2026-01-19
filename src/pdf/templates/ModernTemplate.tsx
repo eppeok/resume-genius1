@@ -153,6 +153,7 @@ interface ContactInfo {
   email?: string;
   phone?: string;
   location?: string;
+  linkedinUrl?: string;
 }
 
 interface ModernTemplateProps {
@@ -251,6 +252,12 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
               <Text style={styles.contactIcon}>◎</Text>
               <Text style={styles.contactText}>{contactInfo?.location || "City, State"}</Text>
             </View>
+            {contactInfo?.linkedinUrl && (
+              <View style={styles.contactItem}>
+                <Text style={styles.contactIcon}>⚯</Text>
+                <Text style={styles.contactText}>{contactInfo.linkedinUrl}</Text>
+              </View>
+            )}
           </View>
           
           {/* Skills with visual bars */}

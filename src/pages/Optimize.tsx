@@ -236,6 +236,7 @@ export default function Optimize() {
           email: formData?.email,
           phone: formData?.phone,
           location: formData?.location,
+          linkedinUrl: formData?.linkedinUrl,
         },
       });
       
@@ -441,6 +442,7 @@ export default function Optimize() {
             email: formData?.email,
             phone: formData?.phone,
             location: formData?.location,
+            linkedinUrl: formData?.linkedinUrl,
           }}
         />
       </div>
