@@ -53,13 +53,24 @@ serve(async (req) => {
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
 
-    // Extract text from PDF using a simple text extraction approach
-    const text = extractTextFromPDF(bytes);
+    // First try basic text extraction
+    let text = extractTextFromPDF(bytes);
+
+    // If no text found, use AI OCR as fallback
+    if (!text || text.trim().length < 50) {
+      console.log("Basic extraction found insufficient text, trying AI OCR...");
+      
+      const ocrText = await extractTextWithAI(bytes);
+      
+      if (ocrText && ocrText.trim().length > 0) {
+        text = ocrText;
+      }
+    }
 
     if (!text || text.trim().length === 0) {
       return new Response(
         JSON.stringify({ 
-          error: "Could not extract text from PDF. The file may be scanned/image-based. Please try uploading a text-based PDF or use DOCX/TXT format." 
+          error: "Could not extract text from PDF. The file may be corrupted or contain only images that couldn't be processed." 
         }),
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -78,6 +89,77 @@ serve(async (req) => {
     );
   }
 });
+
+/**
+ * Extract text from PDF using AI vision model (OCR)
+ */
+async function extractTextWithAI(bytes: Uint8Array): Promise<string> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  if (!LOVABLE_API_KEY) {
+    console.error("LOVABLE_API_KEY not configured");
+    return "";
+  }
+
+  try {
+    // Convert PDF bytes to base64
+    const base64PDF = btoa(String.fromCharCode(...bytes));
+    
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Extract ALL text content from this PDF document. This is a resume/CV document. 
+                
+Please extract and return:
+- All text exactly as it appears
+- Maintain the general structure (sections, bullet points, etc.)
+- Include all contact information, work experience, education, skills, etc.
+- Do not add any commentary or explanations
+- Just return the extracted text content
+
+If the document is a scanned image, use OCR to extract the text.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:application/pdf;base64,${base64PDF}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 8000,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI OCR API error:", response.status, errorText);
+      return "";
+    }
+
+    const data = await response.json();
+    const extractedText = data.choices?.[0]?.message?.content || "";
+    
+    console.log("AI OCR extracted text length:", extractedText.length);
+    return extractedText;
+    
+  } catch (error) {
+    console.error("AI OCR error:", error);
+    return "";
+  }
+}
 
 /**
  * Extract text from PDF bytes using basic PDF text stream parsing
