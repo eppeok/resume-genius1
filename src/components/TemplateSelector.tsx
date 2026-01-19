@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Check, FileText, Briefcase, Award } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import templateClassic from "@/assets/template-classic.png";
+import templateModern from "@/assets/template-modern.png";
+import templateExecutive from "@/assets/template-executive.png";
 
 interface TemplateSelectorProps {
   open: boolean;
@@ -16,23 +19,20 @@ const templates = [
   {
     id: "classic",
     name: "Classic Professional",
-    description: "Traditional, ATS-optimized format perfect for corporate roles",
-    icon: FileText,
-    preview: "Clean lines, clear sections, professional fonts",
+    description: "Traditional ATS-optimized format with clean sections and navy accents",
+    image: templateClassic,
   },
   {
     id: "modern",
     name: "Modern Clean",
-    description: "Contemporary design with subtle accent colors",
-    icon: Briefcase,
-    preview: "Modern typography, subtle colors, balanced layout",
+    description: "Two-column layout with sidebar, skill bars, and contemporary design",
+    image: templateModern,
   },
   {
     id: "executive",
     name: "Executive",
-    description: "Premium feel for senior and leadership positions",
-    icon: Award,
-    preview: "Distinguished style, emphasis on achievements",
+    description: "Premium dark header with gold accents for senior leadership roles",
+    image: templateExecutive,
   },
 ];
 
@@ -41,48 +41,58 @@ export function TemplateSelector({ open, onOpenChange, onSelect, isDownloading }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-display">Choose Your Template</DialogTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Select a professional design for your optimized resume
+          </p>
         </DialogHeader>
         
-        <div className="grid gap-4 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           {templates.map((template) => (
-            <Card
+            <div
               key={template.id}
               className={cn(
-                "cursor-pointer transition-all hover:shadow-md",
+                "relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:shadow-lg group",
                 selectedTemplate === template.id
-                  ? "ring-2 ring-primary border-primary"
-                  : "border-border/50"
+                  ? "border-primary ring-2 ring-primary/20"
+                  : "border-border/50 hover:border-primary/50"
               )}
               onClick={() => setSelectedTemplate(template.id)}
             >
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className={cn(
-                  "p-3 rounded-lg",
-                  selectedTemplate === template.id ? "bg-primary/10" : "bg-secondary"
-                )}>
-                  <template.icon className={cn(
-                    "h-6 w-6",
-                    selectedTemplate === template.id ? "text-primary" : "text-muted-foreground"
-                  )} />
+              {/* Selection indicator */}
+              {selectedTemplate === template.id && (
+                <div className="absolute top-2 right-2 z-10 bg-primary text-primary-foreground rounded-full p-1">
+                  <Check className="h-4 w-4" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-medium flex items-center gap-2">
-                    {template.name}
-                    {selectedTemplate === template.id && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">{template.description}</p>
-                </div>
-              </CardContent>
-            </Card>
+              )}
+              
+              {/* Template preview image */}
+              <div className="relative aspect-[3/4] bg-muted overflow-hidden">
+                <img
+                  src={template.image}
+                  alt={`${template.name} template preview`}
+                  className="w-full h-full object-cover object-top transition-transform group-hover:scale-105"
+                />
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              
+              {/* Template info */}
+              <div className="p-3 bg-card">
+                <h3 className="font-medium text-sm flex items-center gap-2">
+                  {template.name}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                  {template.description}
+                </p>
+              </div>
+            </div>
           ))}
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
