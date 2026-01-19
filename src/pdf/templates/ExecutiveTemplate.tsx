@@ -203,10 +203,17 @@ const styles = StyleSheet.create({
   },
 });
 
+interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
 interface ExecutiveTemplateProps {
   content: string;
   fullName: string;
   targetRole: string;
+  contactInfo?: ContactInfo;
 }
 
 interface ParsedSection {
@@ -269,7 +276,7 @@ function extractSkills(content: string[]): string[] {
   return skills.slice(0, 12);
 }
 
-export function ExecutiveTemplate({ content, fullName, targetRole }: ExecutiveTemplateProps) {
+export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }: ExecutiveTemplateProps) {
   const sections = parseMarkdown(content);
   const summarySection = sections.find(s => s.type === "summary");
   const experienceSection = sections.find(s => s.type === "experience");
@@ -292,15 +299,15 @@ export function ExecutiveTemplate({ content, fullName, targetRole }: ExecutiveTe
             <View style={styles.contactBlock}>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>Email</Text>
-                <Text style={styles.contactValue}>email@example.com</Text>
+                <Text style={styles.contactValue}>{contactInfo?.email || "email@example.com"}</Text>
               </View>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>Phone</Text>
-                <Text style={styles.contactValue}>(555) 123-4567</Text>
+                <Text style={styles.contactValue}>{contactInfo?.phone || "(555) 123-4567"}</Text>
               </View>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>Location</Text>
-                <Text style={styles.contactValue}>City, State</Text>
+                <Text style={styles.contactValue}>{contactInfo?.location || "City, State"}</Text>
               </View>
             </View>
           </View>

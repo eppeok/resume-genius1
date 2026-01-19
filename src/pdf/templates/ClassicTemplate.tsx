@@ -115,10 +115,17 @@ const styles = StyleSheet.create({
   },
 });
 
+interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
 interface ClassicTemplateProps {
   content: string;
   fullName: string;
   targetRole: string;
+  contactInfo?: ContactInfo;
 }
 
 interface ParsedSection {
@@ -182,7 +189,7 @@ function extractSkills(content: string[]): string[] {
   return skills.slice(0, 15); // Limit to 15 skills
 }
 
-export function ClassicTemplate({ content, fullName, targetRole }: ClassicTemplateProps) {
+export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: ClassicTemplateProps) {
   const sections = parseMarkdown(content);
 
   return (
@@ -193,9 +200,9 @@ export function ClassicTemplate({ content, fullName, targetRole }: ClassicTempla
           <Text style={styles.name}>{fullName || "Your Name"}</Text>
           <Text style={styles.title}>{targetRole || "Professional Title"}</Text>
           <View style={styles.contactRow}>
-            <Text style={styles.contactItem}>📧 email@example.com</Text>
-            <Text style={styles.contactItem}>📱 (555) 123-4567</Text>
-            <Text style={styles.contactItem}>📍 City, State</Text>
+            <Text style={styles.contactItem}>📧 {contactInfo?.email || "email@example.com"}</Text>
+            <Text style={styles.contactItem}>📱 {contactInfo?.phone || "(555) 123-4567"}</Text>
+            <Text style={styles.contactItem}>📍 {contactInfo?.location || "City, State"}</Text>
           </View>
         </View>
 

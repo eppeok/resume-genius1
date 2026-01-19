@@ -5,14 +5,21 @@ import { ExecutiveTemplate } from "./templates/ExecutiveTemplate";
 
 export type TemplateName = "classic" | "modern" | "executive";
 
+export interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
 interface GeneratePDFOptions {
   content: string;
   fullName: string;
   targetRole: string;
   template: TemplateName;
+  contactInfo?: ContactInfo;
 }
 
-export async function generatePDF({ content, fullName, targetRole, template }: GeneratePDFOptions): Promise<Blob> {
+export async function generatePDF({ content, fullName, targetRole, template, contactInfo }: GeneratePDFOptions): Promise<Blob> {
   const templateComponents = {
     classic: ClassicTemplate,
     modern: ModernTemplate,
@@ -21,7 +28,7 @@ export async function generatePDF({ content, fullName, targetRole, template }: G
 
   const TemplateComponent = templateComponents[template];
   
-  const doc = <TemplateComponent content={content} fullName={fullName} targetRole={targetRole} />;
+  const doc = <TemplateComponent content={content} fullName={fullName} targetRole={targetRole} contactInfo={contactInfo} />;
   const blob = await pdf(doc).toBlob();
   
   return blob;

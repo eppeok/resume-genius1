@@ -232,6 +232,11 @@ export default function Optimize() {
         fullName: formData?.fullName || "",
         targetRole: formData?.targetRole || "",
         template,
+        contactInfo: {
+          email: formData?.email,
+          phone: formData?.phone,
+          location: formData?.location,
+        },
       });
       
       console.log("PDF blob generated, size:", blob.size);
@@ -432,6 +437,11 @@ export default function Optimize() {
           resumeContent={optimizedResume}
           fullName={formData?.fullName}
           targetRole={formData?.targetRole}
+          contactInfo={{
+            email: formData?.email,
+            phone: formData?.phone,
+            location: formData?.location,
+          }}
         />
       </div>
     </div>

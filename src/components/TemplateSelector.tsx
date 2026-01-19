@@ -12,6 +12,12 @@ import templateClassic from "@/assets/template-classic.png";
 import templateModern from "@/assets/template-modern.png";
 import templateExecutive from "@/assets/template-executive.png";
 
+interface ContactInfo {
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
 interface TemplateSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -20,6 +26,7 @@ interface TemplateSelectorProps {
   resumeContent?: string;
   fullName?: string;
   targetRole?: string;
+  contactInfo?: ContactInfo;
 }
 
 const templates = [
@@ -53,7 +60,8 @@ export function TemplateSelector({
   isDownloading,
   resumeContent = "",
   fullName = "",
-  targetRole = ""
+  targetRole = "",
+  contactInfo
 }: TemplateSelectorProps) {
   const [selectedTemplate, setSelectedTemplate] = useState("classic");
   const [showPreview, setShowPreview] = useState(false);
@@ -81,7 +89,7 @@ export function TemplateSelector({
       const template = templates.find(t => t.id === selectedTemplate);
       if (!template) return;
 
-      const doc = <template.Component content={resumeContent} fullName={fullName} targetRole={targetRole} />;
+      const doc = <template.Component content={resumeContent} fullName={fullName} targetRole={targetRole} contactInfo={contactInfo} />;
       const blob = await pdf(doc).toBlob();
       const url = URL.createObjectURL(blob);
       
