@@ -300,7 +300,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
             <View style={styles.contactBlock}>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>Email</Text>
-                <Text style={styles.contactValue}>{contactInfo?.email || "email@example.com"}</Text>
+                <Link src={`mailto:${contactInfo?.email || "email@example.com"}`} style={styles.contactValue}>{contactInfo?.email || "email@example.com"}</Link>
               </View>
               <View style={styles.contactRow}>
                 <Text style={styles.contactLabel}>Phone</Text>
