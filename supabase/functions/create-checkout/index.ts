@@ -7,6 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Server-side validation: define valid credit packs with fixed pricing
+const VALID_PACKS: Record<string, { credits: number; price: number }> = {
+  "10-credits": { credits: 10, price: 9 },
+  "25-credits": { credits: 25, price: 19 },
+  "50-credits": { credits: 50, price: 29 },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,22 +28,53 @@ serve(async (req) => {
       });
     }
 
-    // Create Supabase client to get user
+    // Create Supabase client to get user with proper JWT verification
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
+    // Verify the user's JWT token by getting user data
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { credits, price } = await req.json();
+    const userId = user.id;
+    const userEmail = user.email;
+
+    if (!userId || !userEmail) {
+      return new Response(JSON.stringify({ error: "User not authenticated" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate pack_id from request body
+    const { pack_id } = await req.json();
+
+    if (!pack_id || typeof pack_id !== "string") {
+      return new Response(JSON.stringify({ error: "Missing or invalid pack_id" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const pack = VALID_PACKS[pack_id];
+    if (!pack) {
+      return new Response(JSON.stringify({ error: "Invalid credit pack selected" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Use server-validated price and credits
+    const { credits, price } = pack;
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -49,7 +87,7 @@ serve(async (req) => {
 
     // Check if customer exists
     const customers = await stripe.customers.list({
-      email: user.email,
+      email: userEmail,
       limit: 1,
     });
 
@@ -58,8 +96,8 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     } else {
       const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { user_id: user.id },
+        email: userEmail,
+        metadata: { user_id: userId },
       });
       customerId = customer.id;
     }
@@ -86,7 +124,7 @@ serve(async (req) => {
       origin = "https://resume-genius1.lovable.app";
     }
 
-    // Create checkout session
+    // Create checkout session with server-validated pricing
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -97,7 +135,7 @@ serve(async (req) => {
               name: `${credits} Resume Optimization Credits`,
               description: `${credits} credits for ATS resume optimization`,
             },
-            unit_amount: price * 100, // Convert to cents
+            unit_amount: price * 100, // Convert to cents - using server-validated price
           },
           quantity: 1,
         },
@@ -106,8 +144,9 @@ serve(async (req) => {
       success_url: `${origin}/credits?success=true`,
       cancel_url: `${origin}/credits?canceled=true`,
       metadata: {
-        user_id: user.id,
-        credits: credits.toString(),
+        user_id: userId,
+        credits: credits.toString(), // Using server-validated credits
+        pack_id: pack_id, // For audit trail
       },
     });
 
