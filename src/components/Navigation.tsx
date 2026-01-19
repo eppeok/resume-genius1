@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { FileText, LogOut, User, CreditCard, History, Sparkles } from "lucide-react";
+import { FileText, LogOut, User, CreditCard, History, Sparkles, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,6 +60,10 @@ export function Navigation() {
                   <DropdownMenuItem onClick={() => navigate("/credits")}>
                     <CreditCard className="h-4 w-4 mr-2" />
                     Buy Credits
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Profile Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
