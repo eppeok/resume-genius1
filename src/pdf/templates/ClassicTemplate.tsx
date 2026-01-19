@@ -33,7 +33,8 @@ const styles = StyleSheet.create({
   contactRow: {
     flexDirection: "row",
     justifyContent: "center",
-    gap: 20,
+    flexWrap: "wrap",
+    gap: 15,
     fontSize: 9,
     color: "#4a5568",
   },
@@ -200,10 +201,13 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
         <View style={styles.header}>
           <Text style={styles.name}>{fullName || "Your Name"}</Text>
           <Text style={styles.title}>{targetRole || "Professional Title"}</Text>
-          <View style={styles.contactRow}>
+        <View style={styles.contactRow}>
             <Text style={styles.contactItem}>📧 {contactInfo?.email || "email@example.com"}</Text>
             <Text style={styles.contactItem}>📱 {contactInfo?.phone || "(555) 123-4567"}</Text>
             <Text style={styles.contactItem}>📍 {contactInfo?.location || "City, State"}</Text>
+            {contactInfo?.linkedinUrl && (
+              <Text style={styles.contactItem}>🔗 {contactInfo.linkedinUrl}</Text>
+            )}
           </View>
         </View>
 

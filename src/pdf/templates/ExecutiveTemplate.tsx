@@ -310,6 +310,12 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
                 <Text style={styles.contactLabel}>Location</Text>
                 <Text style={styles.contactValue}>{contactInfo?.location || "City, State"}</Text>
               </View>
+              {contactInfo?.linkedinUrl && (
+                <View style={styles.contactRow}>
+                  <Text style={styles.contactLabel}>LinkedIn</Text>
+                  <Text style={styles.contactValue}>{contactInfo.linkedinUrl}</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
