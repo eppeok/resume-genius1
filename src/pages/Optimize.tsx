@@ -119,9 +119,14 @@ export default function Optimize() {
       let textBuffer = "";
       let fullContent = "";
 
+      console.log("Starting to read streaming response...");
+
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log("Stream complete. Total content length:", fullContent.length);
+          break;
+        }
 
         textBuffer += decoder.decode(value, { stream: true });
 
@@ -135,7 +140,10 @@ export default function Optimize() {
           if (!line.startsWith("data: ")) continue;
 
           const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
+          if (jsonStr === "[DONE]") {
+            console.log("Received [DONE] signal");
+            break;
+          }
 
           try {
             const parsed = JSON.parse(jsonStr);
@@ -144,12 +152,16 @@ export default function Optimize() {
               fullContent += content;
               setOptimizedResume(fullContent);
             }
-          } catch {
+          } catch (parseError) {
+            // If we can't parse, try to accumulate more data
+            console.log("Parse error, accumulating more data:", parseError);
             textBuffer = line + "\n" + textBuffer;
             break;
           }
         }
       }
+
+      console.log("Final optimized resume preview:", fullContent.substring(0, 200) + "...");
 
       setIsStreaming(false);
 
@@ -211,12 +223,18 @@ export default function Optimize() {
   const handleDownloadPDF = async (template: TemplateName) => {
     setIsDownloading(true);
     try {
+      console.log("Starting PDF generation with template:", template);
+      console.log("Form data:", { fullName: formData?.fullName, targetRole: formData?.targetRole });
+      console.log("Resume content length:", optimizedResume.length);
+      
       const blob = await generatePDF({
         content: optimizedResume,
         fullName: formData?.fullName || "",
         targetRole: formData?.targetRole || "",
         template,
       });
+      
+      console.log("PDF blob generated, size:", blob.size);
       downloadPDF(blob, `${formData?.fullName || "resume"}-${template}.pdf`);
       setShowTemplateSelector(false);
       toast({
@@ -225,9 +243,10 @@ export default function Optimize() {
       });
     } catch (error) {
       console.error("PDF generation error:", error);
+      console.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
       toast({
         title: "Error",
-        description: "Failed to generate PDF",
+        description: error instanceof Error ? error.message : "Failed to generate PDF",
         variant: "destructive",
       });
     } finally {
