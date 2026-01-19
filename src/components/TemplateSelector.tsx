@@ -88,7 +88,10 @@ export function TemplateSelector({ open, onOpenChange, onSelect, isDownloading }
           </Button>
           <Button 
             variant="hero" 
-            onClick={() => onSelect(selectedTemplate)}
+            onClick={() => {
+              console.log("Template selected:", selectedTemplate);
+              onSelect(selectedTemplate);
+            }}
             disabled={isDownloading}
           >
             {isDownloading ? "Generating PDF..." : "Download PDF"}
