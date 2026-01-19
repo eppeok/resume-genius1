@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
   page: {
@@ -313,7 +313,9 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               {contactInfo?.linkedinUrl && (
                 <View style={styles.contactRow}>
                   <Text style={styles.contactLabel}>LinkedIn</Text>
-                  <Text style={styles.contactValue}>{contactInfo.linkedinUrl}</Text>
+                  <Link src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} style={styles.contactValue}>
+                    {contactInfo.linkedinUrl}
+                  </Link>
                 </View>
               )}
             </View>

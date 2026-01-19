@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
   page: {
@@ -206,7 +206,9 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
             <Text style={styles.contactItem}>📱 {contactInfo?.phone || "(555) 123-4567"}</Text>
             <Text style={styles.contactItem}>📍 {contactInfo?.location || "City, State"}</Text>
             {contactInfo?.linkedinUrl && (
-              <Text style={styles.contactItem}>🔗 {contactInfo.linkedinUrl}</Text>
+              <Link src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} style={styles.contactItem}>
+                🔗 {contactInfo.linkedinUrl}
+              </Link>
             )}
           </View>
         </View>
