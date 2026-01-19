@@ -55,10 +55,13 @@ serve(async (req) => {
 
     // First try basic text extraction
     let text = extractTextFromPDF(bytes);
+    const isValidText = isUsableResumeText(text);
 
-    // If no text found, use AI OCR as fallback
-    if (!text || text.trim().length < 50) {
-      console.log("Basic extraction found insufficient text, trying AI OCR...");
+    console.log("Basic extraction result - length:", text.length, "valid:", isValidText);
+
+    // If no usable text found, use AI OCR as fallback
+    if (!isValidText) {
+      console.log("Basic extraction found unusable text, trying AI OCR...");
       
       const ocrText = await extractTextWithAI(bytes);
       
@@ -67,7 +70,7 @@ serve(async (req) => {
       }
     }
 
-    if (!text || text.trim().length === 0) {
+    if (!text || text.trim().length === 0 || !isUsableResumeText(text)) {
       return new Response(
         JSON.stringify({ 
           error: "Could not extract text from PDF. The file may be corrupted or contain only images that couldn't be processed." 
@@ -91,6 +94,59 @@ serve(async (req) => {
 });
 
 /**
+ * Check if extracted text is usable resume content (not just PDF metadata)
+ */
+function isUsableResumeText(text: string): boolean {
+  if (!text || text.trim().length < 100) return false;
+  
+  // Check for PDF structure/metadata indicators that suggest we got garbage
+  const pdfMetadataPatterns = [
+    /^obj\s*<</,
+    /\/Type\s*\/Catalog/,
+    /\/Type\s*\/Page/,
+    /\/Filter\s*\/FlateDecode/,
+    /endobj\s+\d+\s+\d+\s+obj/,
+    /\/FontDescriptor/,
+    /\/BaseFont/,
+    /\/MediaBox/,
+    /stream\s+x\s+endstream/,
+    /xref\s+\d+\s+\d+/,
+    /%%EOF/,
+  ];
+  
+  // If text matches too many PDF structure patterns, it's not usable content
+  let metadataMatchCount = 0;
+  for (const pattern of pdfMetadataPatterns) {
+    if (pattern.test(text)) {
+      metadataMatchCount++;
+    }
+  }
+  
+  // If more than 3 metadata patterns found, this is likely raw PDF structure
+  if (metadataMatchCount > 3) {
+    console.log("Text appears to be PDF metadata, not content. Matches:", metadataMatchCount);
+    return false;
+  }
+  
+  // Check for readable words - a resume should have common words
+  const commonWords = ['experience', 'education', 'skills', 'work', 'email', 'phone', 
+                       'summary', 'objective', 'professional', 'contact', 'address',
+                       'university', 'degree', 'manager', 'engineer', 'developer',
+                       'years', 'company', 'project', 'team', 'responsible'];
+  
+  const lowerText = text.toLowerCase();
+  const wordMatches = commonWords.filter(word => lowerText.includes(word)).length;
+  
+  // Need at least 2 common resume words to be considered valid
+  if (wordMatches < 2) {
+    console.log("Text lacks common resume keywords. Found:", wordMatches);
+    return false;
+  }
+  
+  return true;
+}
+
+/**
  * Extract text from PDF using AI vision model (OCR)
  */
 async function extractTextWithAI(bytes: Uint8Array): Promise<string> {
@@ -104,6 +160,8 @@ async function extractTextWithAI(bytes: Uint8Array): Promise<string> {
   try {
     // Convert PDF bytes to base64
     const base64PDF = btoa(String.fromCharCode(...bytes));
+    
+    console.log("Calling AI OCR, PDF base64 length:", base64PDF.length);
     
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -128,7 +186,7 @@ Please extract and return:
 - Do not add any commentary or explanations
 - Just return the extracted text content
 
-If the document is a scanned image, use OCR to extract the text.`
+If the document is a scanned image or contains images with text, use OCR to extract the text from those images.`
               },
               {
                 type: "image_url",
@@ -182,7 +240,7 @@ function extractTextFromPDF(bytes: Uint8Array): string {
     const tjMatches = streamContent.matchAll(/\(([^)]*)\)\s*Tj/g);
     for (const match of tjMatches) {
       const decoded = decodePDFString(match[1]);
-      if (decoded) textParts.push(decoded);
+      if (decoded && decoded.trim().length > 0) textParts.push(decoded);
     }
 
     // TJ operator with array of strings
@@ -192,17 +250,8 @@ function extractTextFromPDF(bytes: Uint8Array): string {
       const stringMatches = arrayContent.matchAll(/\(([^)]*)\)/g);
       for (const strMatch of stringMatches) {
         const decoded = decodePDFString(strMatch[1]);
-        if (decoded) textParts.push(decoded);
+        if (decoded && decoded.trim().length > 0) textParts.push(decoded);
       }
-    }
-  }
-
-  // Method 2: Look for plain text patterns (fallback for simpler PDFs)
-  if (textParts.length === 0) {
-    // Try to find readable text sequences
-    const readableText = pdfContent.match(/[A-Za-z][A-Za-z0-9\s.,;:!?@#$%^&*()_+\-=\[\]{}|\\'"<>\/~`]{20,}/g);
-    if (readableText) {
-      textParts.push(...readableText);
     }
   }
 
