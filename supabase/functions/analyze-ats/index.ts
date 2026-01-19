@@ -42,6 +42,38 @@ serve(async (req) => {
 
     const { resume, jobDescription } = await req.json() as ATSRequest;
     
+    // SECURITY: Input validation
+    const MAX_RESUME_LENGTH = 50000; // ~10 pages
+    const MAX_JOB_DESC_LENGTH = 10000;
+
+    if (!resume || typeof resume !== 'string' || resume.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Resume is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (resume.length > MAX_RESUME_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: "Resume exceeds maximum length of 50KB" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!jobDescription || typeof jobDescription !== 'string' || jobDescription.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Job description is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (jobDescription.length > MAX_JOB_DESC_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: "Job description exceeds maximum length of 10KB" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
