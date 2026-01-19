@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Briefcase, Target, FileText, Sparkles, Upload } from "lucide-react";
+import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle } from "lucide-react";
+import { parseResumeFile, getSupportedFileTypes } from "@/lib/parseResume";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResumeFormProps {
   onSubmit: (data: FormData) => void;
@@ -20,6 +22,7 @@ export interface FormData {
 }
 
 export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     currentRole: "",
@@ -27,16 +30,42 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
     currentResume: "",
     jobDescription: "",
   });
+  const [isParsingFile, setIsParsingFile] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "currentResume") {
+      setUploadedFileName(null);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && file.type === "text/plain") {
-      const text = await file.text();
+    if (!file) return;
+
+    setIsParsingFile(true);
+    setUploadedFileName(null);
+
+    try {
+      const text = await parseResumeFile(file);
       handleChange("currentResume", text);
+      setUploadedFileName(file.name);
+      toast({
+        title: "File uploaded",
+        description: `Successfully extracted text from ${file.name}`,
+      });
+    } catch (error) {
+      console.error("File parsing error:", error);
+      toast({
+        title: "Error parsing file",
+        description: error instanceof Error ? error.message : "Failed to read file",
+        variant: "destructive",
+      });
+    } finally {
+      setIsParsingFile(false);
+      // Reset input so same file can be selected again
+      e.target.value = "";
     }
   };
 
@@ -128,30 +157,53 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
             <FileText className="h-5 w-5 text-primary" />
             Your Current Resume
           </CardTitle>
-          <CardDescription>Paste your resume or upload a text file</CardDescription>
+          <CardDescription>Upload a file or paste your resume text</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
             <Label
               htmlFor="resumeFile"
-              className="flex items-center gap-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors"
+              className={`flex items-center gap-2 px-4 py-2 border border-dashed rounded-lg cursor-pointer transition-colors ${
+                isParsingFile 
+                  ? "border-primary bg-primary/5" 
+                  : uploadedFileName
+                  ? "border-success bg-success/5"
+                  : "border-border hover:bg-secondary/50"
+              }`}
             >
-              <Upload className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Upload .txt file</span>
+              {isParsingFile ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span className="text-sm text-primary">Parsing file...</span>
+                </>
+              ) : uploadedFileName ? (
+                <>
+                  <CheckCircle className="h-4 w-4 text-success" />
+                  <span className="text-sm text-success">{uploadedFileName}</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    Upload PDF, DOCX, or TXT
+                  </span>
+                </>
+              )}
             </Label>
             <input
               id="resumeFile"
               type="file"
-              accept=".txt"
+              accept={getSupportedFileTypes()}
               onChange={handleFileUpload}
               className="hidden"
+              disabled={isParsingFile}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="currentResume">Resume Content *</Label>
             <Textarea
               id="currentResume"
-              placeholder="Paste your current resume here..."
+              placeholder="Paste your current resume here or upload a file above..."
               value={formData.currentResume}
               onChange={(e) => handleChange("currentResume", e.target.value)}
               className="min-h-[200px] bg-background resize-y font-mono text-sm"
@@ -164,7 +216,7 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
         type="submit"
         variant="hero"
         size="xl"
-        disabled={!isFormValid || isLoading}
+        disabled={!isFormValid || isLoading || isParsingFile}
         className="w-full"
       >
         {isLoading ? (
