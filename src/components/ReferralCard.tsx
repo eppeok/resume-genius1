@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Twitter, Linkedin, MessageCircle } from "lucide-react";
 import { Users, Copy, Gift, Check, Loader2 } from "lucide-react";
 
-const shareMessage = "I've been using ResumeAI to optimize my resume and it's amazing! Use my referral link to get 3 free credits + earn 2 bonus credits after your first optimization:";
+const shareMessage = "I've been using EvolvXTalent to optimize my resume and it's amazing! Use my referral link to get 3 free credits + earn 2 bonus credits after your first optimization:";
 
 interface ReferralStats {
   pending: number;
