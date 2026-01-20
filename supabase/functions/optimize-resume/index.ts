@@ -254,11 +254,35 @@ Please provide an ATS-optimized version of this resume tailored for the job desc
     // Award referral credits if this is the user's first optimization
     if (isFirstOptimization) {
       try {
+        // Get pending referral info before awarding credits
+        const { data: pendingReferral } = await adminSupabase
+          .from("referrals")
+          .select("referrer_id")
+          .eq("referred_id", user.id)
+          .eq("status", "pending")
+          .single();
+
         const { data: referralAwarded } = await adminSupabase.rpc("award_referral_credits", { 
           p_referred_id: user.id 
         });
-        if (referralAwarded) {
+        
+        if (referralAwarded && pendingReferral) {
           console.log("Referral credits awarded for user:", user.id);
+          
+          // Send email notifications (fire and forget)
+          fetch(`${supabaseUrl}/functions/v1/send-referral-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${serviceRoleKey}`,
+            },
+            body: JSON.stringify({
+              referrer_id: pendingReferral.referrer_id,
+              referred_id: user.id,
+            }),
+          }).catch((emailError) => {
+            console.error("Error sending referral emails:", emailError);
+          });
         }
       } catch (referralError) {
         console.error("Error awarding referral credits:", referralError);
