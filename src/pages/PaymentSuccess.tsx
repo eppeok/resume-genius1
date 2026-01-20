@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CheckCircle, Sparkles, ArrowRight } from "lucide-react";
+import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,33 @@ const PaymentSuccess = () => {
   useEffect(() => {
     // Refresh profile to get updated credits
     refreshProfile();
+    
+    // Fire confetti celebration
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b']
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    
+    frame();
   }, []);
 
   useEffect(() => {
