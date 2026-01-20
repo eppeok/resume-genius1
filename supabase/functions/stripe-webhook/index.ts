@@ -181,6 +181,28 @@ serve(async (req) => {
     }
 
     console.log(`Added ${credits} credits to user ${userId}`);
+
+    // Send purchase confirmation email (fire-and-forget, don't block webhook)
+    try {
+      await fetch(`${supabaseUrl}/functions/v1/send-purchase-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          credits_purchased: credits,
+          amount_paid: amountTotal,
+          discount_applied: discountAmount > 0 ? discountAmount : undefined,
+          coupon_code: session.metadata?.coupon_code || undefined,
+        }),
+      });
+      console.log("Purchase confirmation email triggered");
+    } catch (emailError) {
+      // Don't fail the webhook if email fails
+      console.error("Failed to send purchase email:", emailError);
+    }
   }
 
   return new Response(JSON.stringify({ received: true }), {
