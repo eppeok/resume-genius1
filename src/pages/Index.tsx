@@ -12,29 +12,68 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "EvolvXTalent",
-  "description": "AI-powered resume optimization for job seekers",
   "url": "https://resume-genius1.lovable.app",
   "logo": "https://resume-genius1.lovable.app/favicon.ico",
-  "sameAs": ["https://twitter.com/EvolvXTalent"]
+  "description": "AI-powered resume optimization platform that helps job seekers land more interviews.",
+  "sameAs": []
 };
 
 const webApplicationSchema = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
   "name": "EvolvXTalent Resume Optimizer",
-  "description": "Transform your resume with AI-powered ATS optimization. Land more interviews with EvolvXTalent.",
   "url": "https://resume-genius1.lovable.app",
   "applicationCategory": "BusinessApplication",
-  "operatingSystem": "Web Browser",
+  "operatingSystem": "Web",
   "offers": {
     "@type": "Offer",
     "price": "0",
     "priceCurrency": "USD",
-    "description": "3 free credits to get started"
-  }
+    "description": "Start with 3 free credits"
+  },
+  "description": "Transform your resume with AI-powered ATS optimization. Get higher scores, match job requirements, and land more interviews."
 };
 
-const combinedSchema = [organizationSchema, webApplicationSchema];
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I upload my resume to EvolvXTalent?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can paste your resume text directly or upload a PDF/DOCX file. Our system will automatically parse and analyze your content."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What should I include in the job description?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Paste the full job posting you're applying for. Our AI will analyze the requirements and optimize your resume to match the keywords and skills employers are looking for."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does EvolvXTalent optimize my resume?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Our AI analyzes your resume against the job description, identifies missing keywords, improves formatting for ATS systems, and provides an optimized version with before/after scoring."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What formats can I download my optimized resume in?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You can export your optimized resume as a PDF in three professional templates: Classic, Modern, or Executive. All templates are ATS-friendly and ready for job applications."
+      }
+    }
+  ]
+};
+
+const combinedSchema = [organizationSchema, webApplicationSchema, faqSchema];
 
 const features = [
   {
