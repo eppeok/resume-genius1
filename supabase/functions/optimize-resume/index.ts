@@ -70,6 +70,14 @@ serve(async (req) => {
       );
     }
 
+    // Check if this is the user's first optimization (for referral rewards)
+    const { count: existingResumes } = await adminSupabase
+      .from("resumes")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    
+    const isFirstOptimization = existingResumes === 0;
+
     const { fullName, currentRole, targetRole, currentResume, jobDescription } = await req.json() as ResumeRequest;
     
     // SECURITY: Input validation
@@ -241,6 +249,21 @@ Please provide an ATS-optimized version of this resume tailored for the job desc
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Award referral credits if this is the user's first optimization
+    if (isFirstOptimization) {
+      try {
+        const { data: referralAwarded } = await adminSupabase.rpc("award_referral_credits", { 
+          p_referred_id: user.id 
+        });
+        if (referralAwarded) {
+          console.log("Referral credits awarded for user:", user.id);
+        }
+      } catch (referralError) {
+        console.error("Error awarding referral credits:", referralError);
+        // Don't fail the request if referral awarding fails
+      }
     }
 
     return new Response(response.body, {

@@ -62,6 +62,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           phone: string | null
+          referral_code: string | null
           updated_at: string
         }
         Insert: {
@@ -73,6 +74,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -84,9 +86,58 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           phone?: string | null
+          referral_code?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          credits_awarded: boolean | null
+          id: string
+          referral_code: string
+          referred_id: string | null
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          credits_awarded?: boolean | null
+          id?: string
+          referral_code: string
+          referred_id?: string | null
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          credits_awarded?: boolean | null
+          id?: string
+          referral_code?: string
+          referred_id?: string | null
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       resumes: {
         Row: {
@@ -196,6 +247,10 @@ export type Database = {
     Functions: {
       add_credits: {
         Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
+      award_referral_credits: {
+        Args: { p_referred_id: string }
         Returns: boolean
       }
       deduct_credit: { Args: { p_user_id: string }; Returns: boolean }

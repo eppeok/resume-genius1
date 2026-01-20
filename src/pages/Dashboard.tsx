@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReferralCard } from "@/components/ReferralCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +83,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid gap-6">
+          <ReferralCard referralCode={profile?.referral_code ?? null} />
           <Card className="border-border/50 shadow-soft">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
