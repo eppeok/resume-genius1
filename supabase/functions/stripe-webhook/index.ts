@@ -10,8 +10,8 @@ const VALID_PACKS: Record<string, { credits: number; price: number }> = {
 };
 
 serve(async (req) => {
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY")?.trim();
+  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")?.trim();
   
   if (!stripeKey) {
     console.error("STRIPE_SECRET_KEY not configured");
