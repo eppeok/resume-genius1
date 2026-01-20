@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReferralCard } from "@/components/ReferralCard";
@@ -62,6 +63,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        title="My Resumes"
+        description="View and manage your optimized resumes."
+        noIndex={true}
+      />
       <Navigation />
       
       <div className="container max-w-6xl py-8 px-4">

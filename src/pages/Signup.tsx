@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { FileText, Loader2, Gift, Users } from "lucide-react";
@@ -45,6 +46,11 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero px-4">
+      <SEO 
+        title="Create Account"
+        description="Sign up for EvolvXTalent and get 3 free credits to optimize your resume with AI-powered ATS optimization."
+        canonical="/signup"
+      />
       <Card className="w-full max-w-md border-border/50 shadow-elevated">
         <CardHeader className="text-center">
           <Link to="/" className="flex items-center justify-center gap-2 mb-4">

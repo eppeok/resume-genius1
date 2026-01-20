@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { SEO } from "@/components/SEO";
 import { ResumeForm, FormData } from "@/components/ResumeForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -270,6 +271,11 @@ export default function Optimize() {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        title="Optimize Resume"
+        description="AI-powered resume optimization for ATS systems. Get higher scores and land more interviews."
+        noIndex={true}
+      />
       <Navigation />
       
       <div className="container max-w-5xl py-8 px-4">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -88,6 +89,11 @@ export default function BuyCredits() {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        title="Buy Credits"
+        description="Purchase credits to optimize more resumes with AI-powered ATS optimization."
+        noIndex={true}
+      />
       <Navigation />
       
       <div className="container max-w-5xl py-12 px-4">

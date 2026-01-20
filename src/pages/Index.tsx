@@ -1,11 +1,40 @@
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Sparkles, CheckCircle, Zap, FileText, TrendingUp, 
   Download, Shield, Target, Award 
 } from "lucide-react";
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "EvolvXTalent",
+  "description": "AI-powered resume optimization for job seekers",
+  "url": "https://resume-genius1.lovable.app",
+  "logo": "https://resume-genius1.lovable.app/favicon.ico",
+  "sameAs": ["https://twitter.com/EvolvXTalent"]
+};
+
+const webApplicationSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "EvolvXTalent Resume Optimizer",
+  "description": "Transform your resume with AI-powered ATS optimization. Land more interviews with EvolvXTalent.",
+  "url": "https://resume-genius1.lovable.app",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web Browser",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "description": "3 free credits to get started"
+  }
+};
+
+const combinedSchema = [organizationSchema, webApplicationSchema];
 
 const features = [
   {
@@ -39,6 +68,10 @@ const stats = [
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <SEO 
+        canonical="/"
+        structuredData={combinedSchema}
+      />
       <Navigation />
       
       {/* Hero Section */}
