@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, Loader2, Zap, Star, Crown, Tag, X } from "lucide-react";
+import { Check, Loader2, Zap, Star, Crown, Tag, X, Receipt } from "lucide-react";
 
 const creditPacks = [
   {
@@ -188,9 +188,16 @@ export default function BuyCredits() {
       <div className="container max-w-5xl py-12 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-display font-bold mb-4">Buy Credits</h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-muted-foreground mb-4">
             You currently have <span className="text-primary font-semibold">{profile?.credits ?? 0}</span> credits
           </p>
+          <Link 
+            to="/transactions" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Receipt className="h-4 w-4" />
+            View Transaction History
+          </Link>
         </div>
 
         {/* Coupon Section */}
