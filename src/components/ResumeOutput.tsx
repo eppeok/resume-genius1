@@ -1,16 +1,27 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileCheck, Download, Copy, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import ReactMarkdown from "react-markdown";
+import { EditableResumeContent } from "@/components/EditableResumeContent";
 
 interface ResumeOutputProps {
   content: string;
   isStreaming: boolean;
   onReset: () => void;
+  isEditable?: boolean;
+  onContentChange?: (content: string) => void;
+  originalContent?: string;
 }
 
-export function ResumeOutput({ content, isStreaming, onReset }: ResumeOutputProps) {
+export function ResumeOutput({ 
+  content, 
+  isStreaming, 
+  onReset, 
+  isEditable = false,
+  onContentChange,
+  originalContent,
+}: ResumeOutputProps) {
   const { toast } = useToast();
 
   const handleCopy = async () => {
@@ -61,12 +72,19 @@ export function ResumeOutput({ content, isStreaming, onReset }: ResumeOutputProp
           </div>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-display prose-headings:text-foreground prose-p:text-foreground/80 prose-li:text-foreground/80 prose-strong:text-foreground">
-            <ReactMarkdown>{content || "Generating your optimized resume..."}</ReactMarkdown>
-            {isStreaming && (
+          {isStreaming ? (
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              {content || "Generating your optimized resume..."}
               <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1" />
-            )}
-          </div>
+            </div>
+          ) : (
+            <EditableResumeContent
+              content={content}
+              originalContent={originalContent}
+              onContentChange={onContentChange || (() => {})}
+              isEditable={isEditable && !!onContentChange}
+            />
+          )}
         </CardContent>
       </Card>
 

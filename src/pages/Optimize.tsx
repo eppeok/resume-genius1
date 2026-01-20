@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 import { TemplateSelector } from "@/components/TemplateSelector";
+import { EditableResumeContent } from "@/components/EditableResumeContent";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +38,7 @@ export default function Optimize() {
   const [originalScores, setOriginalScores] = useState<ATSScores | null>(null);
   const [optimizedScores, setOptimizedScores] = useState<ATSScores | null>(null);
   const [optimizedResume, setOptimizedResume] = useState("");
+  const [editedResume, setEditedResume] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -165,6 +167,7 @@ export default function Optimize() {
       console.log("Final optimized resume preview:", fullContent.substring(0, 200) + "...");
 
       setIsStreaming(false);
+      setEditedResume(fullContent);
 
       // Analyze the optimized resume
       const optimizedScoresResult = await analyzeResume(fullContent, data.jobDescription);
@@ -214,7 +217,7 @@ export default function Optimize() {
   }, [profile, toast, navigate, refreshProfile]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(optimizedResume);
+    await navigator.clipboard.writeText(editedResume || optimizedResume);
     toast({
       title: "Copied!",
       description: "Resume copied to clipboard",
@@ -229,7 +232,7 @@ export default function Optimize() {
       console.log("Resume content length:", optimizedResume.length);
       
       const blob = await generatePDF({
-        content: optimizedResume,
+        content: editedResume || optimizedResume,
         fullName: formData?.fullName || "",
         targetRole: formData?.targetRole || "",
         template,
@@ -267,6 +270,7 @@ export default function Optimize() {
     setOriginalScores(null);
     setOptimizedScores(null);
     setOptimizedResume("");
+    setEditedResume("");
   };
 
   return (
@@ -423,9 +427,12 @@ export default function Optimize() {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-display prose-headings:text-foreground prose-p:text-foreground/80 prose-li:text-foreground/80 prose-strong:text-foreground">
-                  <ReactMarkdown>{optimizedResume}</ReactMarkdown>
-                </div>
+                <EditableResumeContent
+                  content={editedResume || optimizedResume}
+                  originalContent={optimizedResume}
+                  onContentChange={setEditedResume}
+                  isEditable={true}
+                />
               </CardContent>
             </Card>
 
@@ -441,7 +448,7 @@ export default function Optimize() {
           onOpenChange={setShowTemplateSelector}
           onSelect={handleDownloadPDF}
           isDownloading={isDownloading}
-          resumeContent={optimizedResume}
+          resumeContent={editedResume || optimizedResume}
           fullName={formData?.fullName}
           targetRole={formData?.targetRole}
           contactInfo={{

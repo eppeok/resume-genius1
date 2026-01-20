@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
-import { ResumeOutput } from "@/components/ResumeOutput";
+import { EditableResumeContent } from "@/components/EditableResumeContent";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Calendar, Briefcase, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Calendar, Briefcase, Loader2, FileCheck, Copy, Download, Save } from "lucide-react";
 import { format } from "date-fns";
 
 interface ResumeData {
@@ -36,8 +37,11 @@ interface ResumeData {
 export default function ResumeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [editedContent, setEditedContent] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -57,9 +61,61 @@ export default function ResumeDetail() {
       navigate("/dashboard");
     } else {
       setResume(data);
+      setEditedContent(data.optimized_resume || "");
     }
     setIsLoading(false);
   };
+
+  const handleSave = async () => {
+    if (!resume || !id) return;
+    
+    setIsSaving(true);
+    const { error } = await supabase
+      .from("resumes")
+      .update({ optimized_resume: editedContent })
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+        variant: "destructive",
+      });
+    } else {
+      setResume({ ...resume, optimized_resume: editedContent });
+      toast({
+        title: "Saved!",
+        description: "Your changes have been saved",
+      });
+    }
+    setIsSaving(false);
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(editedContent);
+    toast({
+      title: "Copied!",
+      description: "Resume copied to clipboard",
+    });
+  };
+
+  const handleDownload = () => {
+    const blob = new Blob([editedContent], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${resume?.full_name || "resume"}-optimized.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({
+      title: "Downloaded!",
+      description: "Resume saved as markdown file",
+    });
+  };
+
+  const hasChanges = resume?.optimized_resume !== editedContent;
 
   if (isLoading) {
     return (
@@ -165,11 +221,45 @@ export default function ResumeDetail() {
 
         {/* Optimized Resume */}
         {resume.optimized_resume && (
-          <ResumeOutput
-            content={resume.optimized_resume}
-            isStreaming={false}
-            onReset={() => navigate("/optimize")}
-          />
+          <Card className="border-border/50 shadow-elevated overflow-hidden">
+            <CardHeader className="border-b border-border/50 bg-secondary/30">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg font-display">
+                  <FileCheck className="h-5 w-5 text-success" />
+                  Your Optimized Resume
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {hasChanges && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={handleSave}
+                      disabled={isSaving}
+                    >
+                      <Save className="h-4 w-4" />
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    <Copy className="h-4 w-4" />
+                    Copy
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleDownload}>
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <EditableResumeContent
+                content={editedContent}
+                originalContent={resume.optimized_resume}
+                onContentChange={setEditedContent}
+                isEditable={true}
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
