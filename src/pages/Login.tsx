@@ -8,8 +8,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLoginRateLimiter } from "@/hooks/useLoginRateLimiter";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, Loader2, AlertTriangle, Mail } from "lucide-react";
+import { FileText, Loader2, AlertTriangle, Mail, ShieldAlert } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,7 @@ export default function Login() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isLocked, getRemainingLockoutTime, getRemainingAttempts, recordFailedAttempt, resetOnSuccess } = useLoginRateLimiter();
 
   const from = location.state?.from?.pathname || "/dashboard";
 
@@ -57,10 +59,25 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check rate limiting
+    if (isLocked()) {
+      const remainingMinutes = getRemainingLockoutTime();
+      toast({
+        title: "Too many failed attempts",
+        description: `Please wait ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} before trying again.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
       await signIn(email, password);
+      
+      // Reset rate limiter on successful login
+      resetOnSuccess();
       
       // Check if email is verified
       const { data: { user } } = await supabase.auth.getUser();
@@ -78,9 +95,15 @@ export default function Login() {
       });
       navigate(from, { replace: true });
     } catch (error) {
+      // Record failed attempt
+      recordFailedAttempt();
+      const remaining = getRemainingAttempts();
+      
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to sign in",
+        description: remaining > 0 
+          ? `${error instanceof Error ? error.message : "Failed to sign in"}. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`
+          : "Too many failed attempts. Please wait 15 minutes.",
         variant: "destructive",
       });
     } finally {
@@ -138,11 +161,16 @@ export default function Login() {
                 required
               />
             </div>
-            <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
+            <Button type="submit" variant="hero" className="w-full" disabled={isLoading || isLocked()}>
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Signing in...
+                </>
+              ) : isLocked() ? (
+                <>
+                  <ShieldAlert className="h-4 w-4" />
+                  Locked ({getRemainingLockoutTime()} min)
                 </>
               ) : (
                 "Sign In"
