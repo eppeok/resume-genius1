@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Optimize from "./pages/Optimize";
 import BuyCredits from "./pages/BuyCredits";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import TransactionHistory from "./pages/TransactionHistory";
 import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="/optimize" element={<ProtectedRoute><Optimize /></ProtectedRoute>} />
             <Route path="/credits" element={<ProtectedRoute><BuyCredits /></ProtectedRoute>} />
             <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+            <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
