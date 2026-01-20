@@ -10,6 +10,7 @@ interface Profile {
   phone: string | null;
   location: string | null;
   linkedin_url: string | null;
+  referral_code: string | null;
 }
 
 interface AuthContextType {
@@ -17,7 +18,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, referralCode?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -88,13 +89,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, referralCode?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: fullName },
+        data: { 
+          full_name: fullName,
+          referral_code: referralCode || null,
+        },
       },
     });
     if (error) throw error;

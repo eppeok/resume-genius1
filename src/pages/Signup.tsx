@@ -1,18 +1,20 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Loader2, Gift } from "lucide-react";
+import { FileText, Loader2, Gift, Users } from "lucide-react";
 
 export default function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get("ref");
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -22,10 +24,12 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      await signUp(email, password, fullName);
+      await signUp(email, password, fullName, referralCode || undefined);
       toast({
         title: "Account created!",
-        description: "You've received 3 free credits to get started.",
+        description: referralCode 
+          ? "You've received 3 free credits. Complete your first optimization to unlock referral bonus!" 
+          : "You've received 3 free credits to get started.",
       });
       navigate("/dashboard", { replace: true });
     } catch (error) {
@@ -57,6 +61,15 @@ export default function Signup() {
               Get 3 free credits when you sign up!
             </span>
           </div>
+          
+          {referralCode && (
+            <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-3">
+              <Users className="h-5 w-5 text-primary" />
+              <span className="text-sm text-primary font-medium">
+                Referral code applied! You'll both earn 2 bonus credits after your first optimization.
+              </span>
+            </div>
+          )}
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
