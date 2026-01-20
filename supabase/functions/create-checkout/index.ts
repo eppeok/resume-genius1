@@ -197,7 +197,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${origin}/credits?success=true`,
+      success_url: `${origin}/payment-success`,
       cancel_url: `${origin}/credits?canceled=true`,
       metadata: {
         user_id: userId,
