@@ -4,7 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Twitter, Linkedin, MessageCircle } from "lucide-react";
 import { Users, Copy, Gift, Check, Loader2 } from "lucide-react";
+
+const shareMessage = "I've been using ResumeAI to optimize my resume and it's amazing! Use my referral link to get 3 free credits + earn 2 bonus credits after your first optimization:";
 
 interface ReferralStats {
   pending: number;
@@ -76,6 +79,23 @@ export function ReferralCard({ referralCode }: ReferralCardProps) {
     }
   };
 
+  const handleShareTwitter = () => {
+    const text = encodeURIComponent(`${shareMessage} ${referralLink}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareLinkedIn = () => {
+    const url = encodeURIComponent(referralLink);
+    const title = encodeURIComponent("Get free resume optimization credits!");
+    const summary = encodeURIComponent(shareMessage);
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = encodeURIComponent(`${shareMessage} ${referralLink}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
+  };
+
   if (!referralCode) {
     return null;
   }
@@ -116,6 +136,39 @@ export function ReferralCard({ referralCode }: ReferralCardProps) {
           <p className="text-xs text-muted-foreground">
             Your code: <span className="font-mono font-medium">{referralCode}</span>
           </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-muted-foreground">Share via</label>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShareTwitter}
+              className="flex-1 gap-2"
+            >
+              <Twitter className="h-4 w-4" />
+              Twitter
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShareLinkedIn}
+              className="flex-1 gap-2"
+            >
+              <Linkedin className="h-4 w-4" />
+              LinkedIn
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShareWhatsApp}
+              className="flex-1 gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
