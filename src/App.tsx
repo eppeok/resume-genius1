@@ -17,6 +17,7 @@ import BuyCredits from "./pages/BuyCredits";
 import ProfileSettings from "./pages/ProfileSettings";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
+import CouponManagement from "./pages/admin/CouponManagement";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+            <Route path="/admin/coupons" element={<AdminRoute><CouponManagement /></AdminRoute>} />
             <Route path="/admin/activity" element={<AdminRoute><ActivityLogs /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
