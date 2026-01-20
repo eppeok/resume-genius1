@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
@@ -47,12 +48,27 @@ interface AppliedCoupon {
 }
 
 export default function BuyCredits() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+
+  // Handle fallback success redirect from Stripe
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      refreshProfile();
+      toast({ 
+        title: "Payment Successful!", 
+        description: "Your credits have been added to your account." 
+      });
+      // Clear the query params and redirect to success page
+      navigate('/payment-success', { replace: true });
+    }
+  }, [searchParams, refreshProfile, toast, navigate]);
 
   const calculateDiscountedPrice = (originalPrice: number) => {
     if (!appliedCoupon) return originalPrice;
