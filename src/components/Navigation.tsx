@@ -23,8 +23,10 @@ export function Navigation() {
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
       <div className="container max-w-6xl flex items-center justify-between h-16 px-4">
         <Link to="/" className="flex items-center gap-2 font-display font-bold text-xl">
-          <FileText className="h-6 w-6 text-primary" />
-          <span>ResumeAI</span>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <FileText className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-gradient">EvolvXTalent</span>
         </Link>
 
         <div className="flex items-center gap-4">

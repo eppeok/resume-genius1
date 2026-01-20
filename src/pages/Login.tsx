@@ -46,8 +46,10 @@ export default function Login() {
       <Card className="w-full max-w-md border-border/50 shadow-elevated">
         <CardHeader className="text-center">
           <Link to="/" className="flex items-center justify-center gap-2 mb-4">
-            <FileText className="h-8 w-8 text-primary" />
-            <span className="font-display font-bold text-2xl">ResumeAI</span>
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <span className="font-display font-bold text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">EvolvXTalent</span>
           </Link>
           <CardTitle className="text-2xl font-display">Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>

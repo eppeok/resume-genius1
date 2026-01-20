@@ -11,7 +11,7 @@ export function HeroSection() {
     <div className="text-center space-y-6 animate-slide-up">
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
         <FileText className="h-4 w-4" />
-        AI Resume Optimizer
+        EvolvXTalent AI Optimizer
       </div>
       
       <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight">

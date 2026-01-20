@@ -53,7 +53,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ResumeAI <onboarding@resend.dev>",
+        from: "EvolvXTalent <onboarding@resend.dev>",
         to: [referrer.email],
         subject: "🎉 You earned 2 credits from your referral!",
         html: `
@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
               Great news! <strong>${referredName}</strong> just completed their first resume optimization using your referral link.
             </p>
             
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
               <p style="color: white; font-size: 18px; margin: 0 0 8px 0;">You've earned</p>
               <p style="color: white; font-size: 36px; font-weight: bold; margin: 0;">+2 Credits</p>
             </div>
@@ -81,13 +81,13 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="text-align: center; margin-top: 30px;">
               <a href="https://resume-genius1.lovable.app/dashboard" 
-                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+                 style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
                 View Your Dashboard
               </a>
             </div>
             
             <p style="color: #888; font-size: 14px; margin-top: 40px; text-align: center;">
-              Thanks for spreading the word about ResumeAI!
+              Thanks for spreading the word about EvolvXTalent!
             </p>
           </div>
         `,
@@ -105,7 +105,7 @@ const handler = async (req: Request): Promise<Response> => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ResumeAI <onboarding@resend.dev>",
+        from: "EvolvXTalent <onboarding@resend.dev>",
         to: [referred.email],
         subject: "🎉 You earned 2 bonus credits!",
         html: `
@@ -122,7 +122,7 @@ const handler = async (req: Request): Promise<Response> => {
               Congratulations on completing your first resume optimization! Because you signed up with a referral link, you've earned bonus credits.
             </p>
             
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+            <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
               <p style="color: white; font-size: 18px; margin: 0 0 8px 0;">Bonus Reward</p>
               <p style="color: white; font-size: 36px; font-weight: bold; margin: 0;">+2 Credits</p>
             </div>
@@ -133,13 +133,13 @@ const handler = async (req: Request): Promise<Response> => {
             
             <div style="text-align: center; margin-top: 30px;">
               <a href="https://resume-genius1.lovable.app/dashboard" 
-                 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+                 style="background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
                 Get Your Referral Link
               </a>
             </div>
             
             <p style="color: #888; font-size: 14px; margin-top: 40px; text-align: center;">
-              Thank you for using ResumeAI!
+              Thank you for using EvolvXTalent!
             </p>
           </div>
         `,
