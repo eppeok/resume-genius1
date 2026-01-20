@@ -1,14 +1,41 @@
+# EvolvXTalent Resume Optimizer - robots.txt
+# https://resume-genius1.lovable.app
+
+# Sitemap
+Sitemap: https://resume-genius1.lovable.app/sitemap.xml
+
+# Search Engine Crawlers
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /optimize
+Disallow: /buy-credits
+Disallow: /profile
 
 User-agent: Bingbot
 Allow: /
+Disallow: /dashboard
+Disallow: /optimize
+Disallow: /buy-credits
+Disallow: /profile
 
+# Social Media Crawlers (allow all for rich previews)
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+# All other crawlers
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /optimize
+Disallow: /buy-credits
+Disallow: /profile
+
+# Crawl delay for polite crawling
+Crawl-delay: 1

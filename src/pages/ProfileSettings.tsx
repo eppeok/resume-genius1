@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,6 +68,11 @@ export default function ProfileSettings() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Profile Settings"
+        description="Manage your EvolvXTalent account settings."
+        noIndex={true}
+      />
       <Navigation />
       
       <main className="container max-w-2xl py-8 px-4">
