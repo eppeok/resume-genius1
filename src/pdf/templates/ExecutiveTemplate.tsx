@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, type ResumeEntry } from "./parseResume";
+import { truncateText, truncateUrl, normalizeWhitespace, prepareBullets, prepareSkills, TEXT_LIMITS } from "./styles";
 
 // Executive - Premium design with navy header, gold accents, sophisticated layout
 const navyColor = "#0f172a";
@@ -10,125 +11,121 @@ const styles = StyleSheet.create({
   page: {
     fontSize: 9,
     fontFamily: "Helvetica",
-    lineHeight: 1.5,
+    lineHeight: 1.4,
     backgroundColor: "#ffffff",
   },
   // Premium header band
   headerBand: {
     backgroundColor: navyColor,
-    paddingHorizontal: 40,
-    paddingTop: 45,
-    paddingBottom: 35,
+    paddingHorizontal: 35,
+    paddingTop: 35,
+    paddingBottom: 28,
   },
   headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "flex-start",
+    gap: 20,
   },
   nameBlock: {
     flex: 1,
+    flexShrink: 1,
   },
   name: {
-    fontSize: 30,
+    fontSize: 26,
     fontFamily: "Helvetica-Bold",
     color: "#ffffff",
-    marginBottom: 6,
+    marginBottom: 5,
     letterSpacing: 1,
   },
   title: {
-    fontSize: 12,
+    fontSize: 11,
     color: goldColor,
-    letterSpacing: 3,
+    letterSpacing: 2,
     textTransform: "uppercase",
     fontFamily: "Helvetica-Bold",
   },
   contactBlock: {
     alignItems: "flex-end",
+    flexShrink: 0,
+    maxWidth: "45%",
   },
   contactRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 5,
+    marginBottom: 4,
   },
   contactLabel: {
-    fontSize: 7,
+    fontSize: 6,
     color: "#64748b",
-    marginRight: 10,
+    marginRight: 8,
     textTransform: "uppercase",
     letterSpacing: 1,
-    width: 55,
+    width: 50,
     textAlign: "right",
+    flexShrink: 0,
   },
   contactValue: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#e2e8f0",
-    minWidth: 120,
+    maxWidth: 120,
+    textAlign: "left",
   },
   contactLink: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#e2e8f0",
     textDecoration: "none",
-    minWidth: 120,
+    maxWidth: 120,
+    textAlign: "left",
   },
   // Gold accent line
   goldAccent: {
-    height: 4,
+    height: 3,
     backgroundColor: goldColor,
   },
   // Body
   body: {
-    paddingHorizontal: 40,
-    paddingTop: 25,
-    paddingBottom: 40,
+    paddingHorizontal: 35,
+    paddingTop: 20,
+    paddingBottom: 50,
   },
   // Full width summary
   summarySection: {
-    marginBottom: 25,
-    paddingBottom: 20,
+    marginBottom: 20,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
   summaryLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: goldColor,
     textTransform: "uppercase",
     letterSpacing: 2,
-    marginBottom: 8,
+    marginBottom: 6,
     fontFamily: "Helvetica-Bold",
   },
   summaryText: {
     color: "#374151",
-    lineHeight: 1.8,
-    fontSize: 11,
+    lineHeight: 1.7,
+    fontSize: 10,
     textAlign: "justify",
   },
   // Two column layout
   twoColumn: {
     flexDirection: "row",
-    gap: 30,
+    gap: 25,
   },
   leftColumn: {
-    width: "62%",
+    width: "60%",
   },
   rightColumn: {
-    width: "38%",
+    width: "40%",
   },
   // Section styling
   section: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    color: navyColor,
-    marginBottom: 12,
-    textTransform: "uppercase",
-    letterSpacing: 2.5,
-    paddingBottom: 6,
-    borderBottomWidth: 2,
-    borderBottomColor: goldColor,
-  },
-  rightSectionTitle: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
     color: navyColor,
@@ -136,123 +133,141 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     letterSpacing: 2,
     paddingBottom: 5,
+    borderBottomWidth: 2,
+    borderBottomColor: goldColor,
+  },
+  rightSectionTitle: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: navyColor,
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 1.5,
+    paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: "#d1d5db",
   },
   // Experience entries with gold left border
   experienceEntry: {
-    marginBottom: 16,
-    paddingLeft: 14,
-    borderLeftWidth: 3,
+    marginBottom: 12,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
     borderLeftColor: goldColor,
   },
   entryHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 4,
+    marginBottom: 3,
+    gap: 6,
   },
   entryTitleBlock: {
     flex: 1,
+    flexShrink: 1,
   },
   entryTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Helvetica-Bold",
     color: navyColor,
   },
   entryOrg: {
-    fontSize: 10,
+    fontSize: 9,
     color: goldColor,
-    marginTop: 2,
+    marginTop: 1,
   },
   entryLocation: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#9ca3af",
-    marginTop: 2,
+    marginTop: 1,
   },
   entryDate: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#6b7280",
     fontFamily: "Helvetica-Oblique",
     textAlign: "right",
-    minWidth: 85,
+    flexShrink: 0,
+    maxWidth: 75,
   },
   bulletList: {
-    marginTop: 8,
+    marginTop: 5,
   },
   bulletItem: {
     flexDirection: "row",
-    marginBottom: 4,
+    marginBottom: 3,
+    alignItems: "flex-start",
   },
   bulletPoint: {
-    width: 12,
+    width: 10,
     color: goldColor,
-    fontSize: 8,
+    fontSize: 7,
+    flexShrink: 0,
   },
   bulletText: {
     flex: 1,
     color: "#4b5563",
-    fontSize: 9,
-    lineHeight: 1.5,
+    fontSize: 8,
+    lineHeight: 1.4,
+    flexShrink: 1,
   },
   // Skills as elegant tags
   skillsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
+    gap: 4,
   },
   skillTag: {
-    fontSize: 8,
+    fontSize: 7,
     color: navyColor,
     backgroundColor: "#fef3c7",
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
     borderRadius: 2,
     borderWidth: 1,
     borderColor: goldLight,
+    maxWidth: "48%",
   },
   // Education
   educationEntry: {
-    marginBottom: 12,
-    paddingBottom: 10,
+    marginBottom: 10,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
   },
   eduDegree: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
     color: navyColor,
   },
   eduSchool: {
-    fontSize: 9,
-    color: "#6b7280",
-    marginTop: 3,
-  },
-  eduDate: {
-    fontSize: 8,
-    color: goldColor,
-    marginTop: 3,
-  },
-  // Certifications
-  certEntry: {
-    marginBottom: 8,
-  },
-  certName: {
-    fontSize: 9,
-    color: navyColor,
-    fontFamily: "Helvetica-Bold",
-  },
-  certOrg: {
     fontSize: 8,
     color: "#6b7280",
     marginTop: 2,
   },
+  eduDate: {
+    fontSize: 7,
+    color: goldColor,
+    marginTop: 2,
+  },
+  // Certifications
+  certEntry: {
+    marginBottom: 6,
+  },
+  certName: {
+    fontSize: 8,
+    color: navyColor,
+    fontFamily: "Helvetica-Bold",
+  },
+  certOrg: {
+    fontSize: 7,
+    color: "#6b7280",
+    marginTop: 1,
+  },
   // Footer
   footer: {
     position: "absolute",
-    bottom: 25,
-    left: 40,
-    right: 40,
+    bottom: 20,
+    left: 35,
+    right: 35,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -262,11 +277,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#e5e7eb",
   },
   footerText: {
-    fontSize: 7,
+    fontSize: 6,
     color: "#9ca3af",
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     textTransform: "uppercase",
     letterSpacing: 2,
+  },
+  // Other content
+  otherContent: {
+    color: "#4b5563",
+    fontSize: 8,
+    marginBottom: 2,
   },
 });
 
@@ -285,25 +306,33 @@ interface ExecutiveTemplateProps {
 }
 
 function ExperienceEntry({ entry }: { entry: ResumeEntry }) {
+  const bullets = prepareBullets(entry.bullets);
+  
   return (
-    <View style={styles.experienceEntry}>
+    <View style={styles.experienceEntry} wrap={false}>
       <View style={styles.entryHeader}>
         <View style={styles.entryTitleBlock}>
-          <Text style={styles.entryTitle}>{entry.title}</Text>
+          <Text style={styles.entryTitle}>
+            {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
+          </Text>
           {entry.organization && (
-            <Text style={styles.entryOrg}>{entry.organization}</Text>
+            <Text style={styles.entryOrg}>
+              {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
+            </Text>
           )}
           {entry.location && (
             <Text style={styles.entryLocation}>{entry.location}</Text>
           )}
         </View>
         {entry.dateRange && (
-          <Text style={styles.entryDate}>{entry.dateRange}</Text>
+          <Text style={styles.entryDate}>
+            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
+          </Text>
         )}
       </View>
-      {entry.bullets.length > 0 && (
+      {bullets.length > 0 && (
         <View style={styles.bulletList}>
-          {entry.bullets.map((bullet, idx) => (
+          {bullets.map((bullet, idx) => (
             <View key={idx} style={styles.bulletItem}>
               <Text style={styles.bulletPoint}>■</Text>
               <Text style={styles.bulletText}>{bullet}</Text>
@@ -317,13 +346,19 @@ function ExperienceEntry({ entry }: { entry: ResumeEntry }) {
 
 function EducationEntryComponent({ entry }: { entry: ResumeEntry }) {
   return (
-    <View style={styles.educationEntry}>
-      <Text style={styles.eduDegree}>{entry.title}</Text>
+    <View style={styles.educationEntry} wrap={false}>
+      <Text style={styles.eduDegree}>
+        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
+      </Text>
       {entry.organization && (
-        <Text style={styles.eduSchool}>{entry.organization}</Text>
+        <Text style={styles.eduSchool}>
+          {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
+        </Text>
       )}
       {entry.dateRange && (
-        <Text style={styles.eduDate}>{entry.dateRange}</Text>
+        <Text style={styles.eduDate}>
+          {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
+        </Text>
       )}
     </View>
   );
@@ -331,10 +366,14 @@ function EducationEntryComponent({ entry }: { entry: ResumeEntry }) {
 
 function CertificationEntry({ entry }: { entry: ResumeEntry }) {
   return (
-    <View style={styles.certEntry}>
-      <Text style={styles.certName}>{entry.title}</Text>
+    <View style={styles.certEntry} wrap={false}>
+      <Text style={styles.certName}>
+        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
+      </Text>
       {entry.organization && (
-        <Text style={styles.certOrg}>{entry.organization}</Text>
+        <Text style={styles.certOrg}>
+          {truncateText(entry.organization, 40)}
+        </Text>
       )}
     </View>
   );
@@ -342,6 +381,8 @@ function CertificationEntry({ entry }: { entry: ResumeEntry }) {
 
 export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }: ExecutiveTemplateProps) {
   const resume = parseResume(content);
+  const skills = prepareSkills(resume.skills, 12);
+  const summaryText = normalizeWhitespace(resume.summary.join(' '));
 
   return (
     <Document>
@@ -350,15 +391,19 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
         <View style={styles.headerBand}>
           <View style={styles.headerContent}>
             <View style={styles.nameBlock}>
-              <Text style={styles.name}>{fullName || "Your Name"}</Text>
-              <Text style={styles.title}>{targetRole || "Executive Professional"}</Text>
+              <Text style={styles.name}>
+                {truncateText(fullName || "Your Name", 35)}
+              </Text>
+              <Text style={styles.title}>
+                {truncateText(targetRole || "Executive Professional", 40)}
+              </Text>
             </View>
             <View style={styles.contactBlock}>
               {contactInfo?.email && (
                 <View style={styles.contactRow}>
                   <Text style={styles.contactLabel}>Email</Text>
                   <Link src={`mailto:${contactInfo.email}`} style={styles.contactLink}>
-                    {contactInfo.email}
+                    {truncateText(contactInfo.email, 28)}
                   </Link>
                 </View>
               )}
@@ -371,7 +416,9 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               {contactInfo?.location && (
                 <View style={styles.contactRow}>
                   <Text style={styles.contactLabel}>Location</Text>
-                  <Text style={styles.contactValue}>{contactInfo.location}</Text>
+                  <Text style={styles.contactValue}>
+                    {truncateText(contactInfo.location, 25)}
+                  </Text>
                 </View>
               )}
               {contactInfo?.linkedinUrl && (
@@ -381,7 +428,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
                     src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} 
                     style={styles.contactLink}
                   >
-                    {contactInfo.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '')}
+                    {truncateUrl(contactInfo.linkedinUrl, 25)}
                   </Link>
                 </View>
               )}
@@ -399,7 +446,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
             <View style={styles.summarySection}>
               <Text style={styles.summaryLabel}>Executive Summary</Text>
               <Text style={styles.summaryText}>
-                {resume.summary.join(' ')}
+                {truncateText(summaryText, TEXT_LIMITS.summary)}
               </Text>
             </View>
           )}
@@ -431,9 +478,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
                 <View key={index} style={styles.section}>
                   <Text style={styles.sectionTitle}>{section.title}</Text>
                   {section.content.map((line, lineIndex) => (
-                    <Text key={lineIndex} style={{ color: "#4b5563", fontSize: 9, marginBottom: 3 }}>
-                      {line}
-                    </Text>
+                    <Text key={lineIndex} style={styles.otherContent}>{line}</Text>
                   ))}
                 </View>
               ))}
@@ -441,11 +486,11 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
 
             {/* Right Column - Skills, Education, Certifications */}
             <View style={styles.rightColumn}>
-              {resume.skills.length > 0 && (
+              {skills.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.rightSectionTitle}>Core Competencies</Text>
                   <View style={styles.skillsGrid}>
-                    {resume.skills.slice(0, 15).map((skill, index) => (
+                    {skills.map((skill, index) => (
                       <Text key={index} style={styles.skillTag}>{skill}</Text>
                     ))}
                   </View>

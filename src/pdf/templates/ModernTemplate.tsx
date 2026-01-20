@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, getInitials, type ResumeEntry } from "./parseResume";
+import { truncateText, truncateUrl, normalizeWhitespace, prepareBullets, prepareSkills, TEXT_LIMITS } from "./styles";
 
 // Modern Clean - Two-column layout with teal accents and experience cards
 const primaryColor = "#0d9488";
@@ -15,149 +16,153 @@ const styles = StyleSheet.create({
   },
   // Sidebar
   sidebar: {
-    width: "35%",
+    width: "32%",
     backgroundColor: sidebarBg,
-    padding: 25,
-    paddingTop: 35,
+    padding: 20,
+    paddingTop: 30,
     color: "#ffffff",
   },
   avatarCircle: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: primaryColor,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 15,
+    marginBottom: 12,
     alignSelf: "center",
   },
   avatarText: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: "Helvetica-Bold",
     color: "#ffffff",
   },
   sidebarName: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Helvetica-Bold",
     color: "#ffffff",
-    marginBottom: 4,
+    marginBottom: 3,
     textAlign: "center",
     lineHeight: 1.2,
   },
   sidebarTitle: {
-    fontSize: 10,
+    fontSize: 9,
     color: primaryColor,
-    marginBottom: 25,
+    marginBottom: 20,
     textAlign: "center",
     letterSpacing: 0.5,
   },
   sidebarSection: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   sidebarSectionTitle: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
     color: primaryColor,
-    marginBottom: 10,
+    marginBottom: 8,
     textTransform: "uppercase",
-    letterSpacing: 2,
+    letterSpacing: 1.5,
     borderBottomWidth: 1,
     borderBottomColor: "#334155",
-    paddingBottom: 5,
+    paddingBottom: 4,
   },
   // Contact items
   contactItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 10,
+    marginBottom: 8,
   },
   contactIcon: {
-    width: 22,
-    fontSize: 8,
+    width: 18,
+    fontSize: 7,
     color: primaryColor,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
+    flexShrink: 0,
   },
   contactText: {
     flex: 1,
-    fontSize: 9,
+    fontSize: 8,
     color: "#cbd5e1",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
+    flexShrink: 1,
   },
   contactLink: {
     flex: 1,
-    fontSize: 9,
+    fontSize: 8,
     color: "#cbd5e1",
     textDecoration: "none",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
+    flexShrink: 1,
   },
   // Skills
   skillItem: {
-    marginBottom: 8,
+    marginBottom: 6,
   },
   skillName: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#ffffff",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   skillBarBg: {
-    height: 4,
+    height: 3,
     backgroundColor: "#334155",
-    borderRadius: 2,
+    borderRadius: 1,
   },
   skillBarFill: {
-    height: 4,
+    height: 3,
     backgroundColor: primaryColor,
-    borderRadius: 2,
+    borderRadius: 1,
   },
   // Skill tags for overflow
   skillTags: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 4,
-    marginTop: 8,
+    gap: 3,
+    marginTop: 6,
   },
   skillTag: {
-    fontSize: 7,
+    fontSize: 6,
     color: "#94a3b8",
     backgroundColor: "#1e293b",
-    paddingVertical: 3,
-    paddingHorizontal: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 5,
     borderRadius: 2,
+    maxWidth: "95%",
   },
   // Main content
   main: {
-    width: "65%",
-    padding: 30,
-    paddingTop: 35,
+    width: "68%",
+    padding: 25,
+    paddingTop: 30,
     backgroundColor: "#ffffff",
   },
   mainSection: {
-    marginBottom: 18,
+    marginBottom: 14,
   },
   mainSectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
     color: darkColor,
-    marginBottom: 12,
+    marginBottom: 10,
     textTransform: "uppercase",
     letterSpacing: 1.5,
     borderBottomWidth: 2,
     borderBottomColor: primaryColor,
-    paddingBottom: 5,
+    paddingBottom: 4,
   },
   // Summary
   summaryText: {
     color: "#374151",
-    lineHeight: 1.7,
+    lineHeight: 1.6,
     textAlign: "justify",
-    fontSize: 10,
+    fontSize: 9,
   },
   // Experience cards
   experienceCard: {
-    marginBottom: 14,
-    paddingLeft: 12,
-    borderLeftWidth: 3,
+    marginBottom: 12,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
     borderLeftColor: primaryColor,
     paddingTop: 2,
     paddingBottom: 2,
@@ -166,79 +171,114 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 3,
+    marginBottom: 2,
+    gap: 6,
   },
   cardTitleBlock: {
     flex: 1,
+    flexShrink: 1,
   },
   cardTitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Helvetica-Bold",
     color: darkColor,
   },
   cardOrg: {
-    fontSize: 10,
+    fontSize: 9,
     color: primaryColor,
     marginTop: 1,
   },
   cardLocation: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#9ca3af",
-    marginTop: 2,
+    marginTop: 1,
   },
   cardDate: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#6b7280",
     backgroundColor: "#f3f4f6",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 3,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 2,
+    flexShrink: 0,
+    maxWidth: 75,
   },
   bulletList: {
-    marginTop: 6,
+    marginTop: 4,
   },
   bulletItem: {
     flexDirection: "row",
-    marginBottom: 4,
+    marginBottom: 3,
+    alignItems: "flex-start",
   },
   bulletPoint: {
-    width: 14,
+    width: 12,
     color: primaryColor,
-    fontSize: 8,
+    fontSize: 7,
+    flexShrink: 0,
   },
   bulletText: {
     flex: 1,
     color: "#4b5563",
-    fontSize: 9,
-    lineHeight: 1.5,
+    fontSize: 8,
+    lineHeight: 1.4,
+    flexShrink: 1,
   },
   // Education
   educationEntry: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   eduDegree: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
     color: darkColor,
   },
   eduSchool: {
-    fontSize: 9,
+    fontSize: 8,
     color: primaryColor,
-    marginTop: 2,
+    marginTop: 1,
   },
   eduMeta: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 3,
+    marginTop: 2,
+    gap: 6,
   },
   eduLocation: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#9ca3af",
+    flexShrink: 1,
   },
   eduDate: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#6b7280",
     fontFamily: "Helvetica-Oblique",
+    flexShrink: 0,
+  },
+  // Sidebar education
+  sidebarEduEntry: {
+    marginBottom: 8,
+  },
+  sidebarEduTitle: {
+    fontSize: 8,
+    color: "#ffffff",
+    fontFamily: "Helvetica-Bold",
+  },
+  sidebarEduOrg: {
+    fontSize: 7,
+    color: "#94a3b8",
+    marginTop: 1,
+  },
+  sidebarEduDate: {
+    fontSize: 6,
+    color: "#64748b",
+    marginTop: 1,
+  },
+  // Other content
+  otherContent: {
+    color: "#4b5563",
+    fontSize: 8,
+    marginBottom: 2,
   },
 });
 
@@ -257,25 +297,33 @@ interface ModernTemplateProps {
 }
 
 function ExperienceCard({ entry }: { entry: ResumeEntry }) {
+  const bullets = prepareBullets(entry.bullets);
+  
   return (
-    <View style={styles.experienceCard}>
+    <View style={styles.experienceCard} wrap={false}>
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleBlock}>
-          <Text style={styles.cardTitle}>{entry.title}</Text>
+          <Text style={styles.cardTitle}>
+            {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
+          </Text>
           {entry.organization && (
-            <Text style={styles.cardOrg}>{entry.organization}</Text>
+            <Text style={styles.cardOrg}>
+              {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
+            </Text>
           )}
           {entry.location && (
             <Text style={styles.cardLocation}>{entry.location}</Text>
           )}
         </View>
         {entry.dateRange && (
-          <Text style={styles.cardDate}>{entry.dateRange}</Text>
+          <Text style={styles.cardDate}>
+            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
+          </Text>
         )}
       </View>
-      {entry.bullets.length > 0 && (
+      {bullets.length > 0 && (
         <View style={styles.bulletList}>
-          {entry.bullets.map((bullet, idx) => (
+          {bullets.map((bullet, idx) => (
             <View key={idx} style={styles.bulletItem}>
               <Text style={styles.bulletPoint}>▸</Text>
               <Text style={styles.bulletText}>{bullet}</Text>
@@ -289,14 +337,22 @@ function ExperienceCard({ entry }: { entry: ResumeEntry }) {
 
 function EducationEntry({ entry }: { entry: ResumeEntry }) {
   return (
-    <View style={styles.educationEntry}>
-      <Text style={styles.eduDegree}>{entry.title}</Text>
+    <View style={styles.educationEntry} wrap={false}>
+      <Text style={styles.eduDegree}>
+        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
+      </Text>
       {entry.organization && (
-        <Text style={styles.eduSchool}>{entry.organization}</Text>
+        <Text style={styles.eduSchool}>
+          {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
+        </Text>
       )}
       <View style={styles.eduMeta}>
         {entry.location && <Text style={styles.eduLocation}>{entry.location}</Text>}
-        {entry.dateRange && <Text style={styles.eduDate}>{entry.dateRange}</Text>}
+        {entry.dateRange && (
+          <Text style={styles.eduDate}>
+            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -305,8 +361,9 @@ function EducationEntry({ entry }: { entry: ResumeEntry }) {
 export function ModernTemplate({ content, fullName, targetRole, contactInfo }: ModernTemplateProps) {
   const resume = parseResume(content);
   const initials = getInitials(fullName || "YN");
-  const primarySkills = resume.skills.slice(0, 6);
-  const secondarySkills = resume.skills.slice(6, 12);
+  const primarySkills = prepareSkills(resume.skills.slice(0, 5), 5, 25);
+  const secondarySkills = prepareSkills(resume.skills.slice(5, 10), 5, 20);
+  const summaryText = normalizeWhitespace(resume.summary.join(' '));
 
   return (
     <Document>
@@ -318,8 +375,12 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           
-          <Text style={styles.sidebarName}>{fullName || "Your Name"}</Text>
-          <Text style={styles.sidebarTitle}>{targetRole || "Professional Title"}</Text>
+          <Text style={styles.sidebarName}>
+            {truncateText(fullName || "Your Name", 30)}
+          </Text>
+          <Text style={styles.sidebarTitle}>
+            {truncateText(targetRole || "Professional Title", 35)}
+          </Text>
           
           {/* Contact Info */}
           <View style={styles.sidebarSection}>
@@ -328,7 +389,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
               <View style={styles.contactItem}>
                 <Text style={styles.contactIcon}>@</Text>
                 <Link src={`mailto:${contactInfo.email}`} style={styles.contactLink}>
-                  {contactInfo.email}
+                  {truncateText(contactInfo.email, 25)}
                 </Link>
               </View>
             )}
@@ -341,7 +402,9 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             {contactInfo?.location && (
               <View style={styles.contactItem}>
                 <Text style={styles.contactIcon}>L</Text>
-                <Text style={styles.contactText}>{contactInfo.location}</Text>
+                <Text style={styles.contactText}>
+                  {truncateText(contactInfo.location, 25)}
+                </Text>
               </View>
             )}
             {contactInfo?.linkedinUrl && (
@@ -351,7 +414,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
                   src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} 
                   style={styles.contactLink}
                 >
-                  {contactInfo.linkedinUrl.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')}
+                  {truncateUrl(contactInfo.linkedinUrl, 22)}
                 </Link>
               </View>
             )}
@@ -365,7 +428,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
                 <View key={index} style={styles.skillItem}>
                   <Text style={styles.skillName}>{skill}</Text>
                   <View style={styles.skillBarBg}>
-                    <View style={[styles.skillBarFill, { width: `${90 - index * 8}%` }]} />
+                    <View style={[styles.skillBarFill, { width: `${90 - index * 10}%` }]} />
                   </View>
                 </View>
               ))}
@@ -384,18 +447,18 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             <View style={styles.sidebarSection}>
               <Text style={styles.sidebarSectionTitle}>Education</Text>
               {resume.education.map((edu, index) => (
-                <View key={index} style={{ marginBottom: 8 }}>
-                  <Text style={{ fontSize: 9, color: "#ffffff", fontFamily: "Helvetica-Bold" }}>
-                    {edu.title}
+                <View key={index} style={styles.sidebarEduEntry}>
+                  <Text style={styles.sidebarEduTitle}>
+                    {truncateText(edu.title, 35)}
                   </Text>
                   {edu.organization && (
-                    <Text style={{ fontSize: 8, color: "#94a3b8", marginTop: 2 }}>
-                      {edu.organization}
+                    <Text style={styles.sidebarEduOrg}>
+                      {truncateText(edu.organization, 30)}
                     </Text>
                   )}
                   {edu.dateRange && (
-                    <Text style={{ fontSize: 7, color: "#64748b", marginTop: 2 }}>
-                      {edu.dateRange}
+                    <Text style={styles.sidebarEduDate}>
+                      {truncateText(edu.dateRange, 20)}
                     </Text>
                   )}
                 </View>
@@ -411,7 +474,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             <View style={styles.mainSection}>
               <Text style={styles.mainSectionTitle}>About Me</Text>
               <Text style={styles.summaryText}>
-                {resume.summary.join(' ')}
+                {truncateText(summaryText, TEXT_LIMITS.summary)}
               </Text>
             </View>
           )}
@@ -451,9 +514,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             <View key={index} style={styles.mainSection}>
               <Text style={styles.mainSectionTitle}>{section.title}</Text>
               {section.content.map((line, lineIndex) => (
-                <Text key={lineIndex} style={{ color: "#4b5563", fontSize: 9, marginBottom: 3 }}>
-                  {line}
-                </Text>
+                <Text key={lineIndex} style={styles.otherContent}>{line}</Text>
               ))}
             </View>
           ))}

@@ -88,11 +88,13 @@ function parseJobEntry(line: string): ResumeEntry | null {
 }
 
 function cleanText(text: string): string {
+  if (!text) return '';
   return text
     .replace(/\*\*/g, '')
     .replace(/\*/g, '')
     .replace(/^#+\s*/, '')
     .replace(/^\s*[-•]\s*/, '')
+    .replace(/\s+/g, ' ')  // Normalize whitespace
     .trim();
 }
 
@@ -101,7 +103,9 @@ function isBulletPoint(line: string): boolean {
 }
 
 function extractBulletText(line: string): string {
-  return line.replace(/^[-•*]\s+/, '').replace(/^\d+\.\s+/, '').trim();
+  const text = line.replace(/^[-•*]\s+/, '').replace(/^\d+\.\s+/, '').trim();
+  // Normalize whitespace within bullet text
+  return text.replace(/\s+/g, ' ');
 }
 
 function categorizeSection(title: string): 'summary' | 'experience' | 'education' | 'skills' | 'certifications' | 'projects' | 'other' {
@@ -139,6 +143,8 @@ export function parseResume(markdown: string): ParsedResume {
     projects: [],
     other: [],
   };
+  
+  if (!markdown) return result;
   
   const lines = markdown.split('\n');
   let currentSection: ReturnType<typeof categorizeSection> = 'other';
@@ -214,7 +220,8 @@ export function parseResume(markdown: string): ParsedResume {
         const skillParts = trimmedLine.split(/[,;|•·]/);
         for (const part of skillParts) {
           const skill = cleanText(part);
-          if (skill && skill.length < 50 && !result.skills.includes(skill)) {
+          // Limit skill length and filter duplicates
+          if (skill && skill.length > 0 && skill.length < 40 && !result.skills.includes(skill)) {
             result.skills.push(skill);
           }
         }
@@ -238,7 +245,10 @@ export function parseResume(markdown: string): ParsedResume {
         } else if (currentEntry) {
           // Add to current entry
           if (isBulletPoint(trimmedLine)) {
-            currentEntry.bullets.push(extractBulletText(trimmedLine));
+            const bulletText = extractBulletText(trimmedLine);
+            if (bulletText) {
+              currentEntry.bullets.push(bulletText);
+            }
           } else {
             // Could be company/org line or continuation
             const text = cleanText(trimmedLine);
@@ -252,7 +262,7 @@ export function parseResume(markdown: string): ParsedResume {
               } else if (text) {
                 currentEntry.organization = text;
               }
-            } else if (text) {
+            } else if (text && text.length > 0) {
               currentEntry.bullets.push(text);
             }
           }
@@ -266,7 +276,10 @@ export function parseResume(markdown: string): ParsedResume {
         break;
         
       case 'other':
-        currentOtherContent.push(cleanText(trimmedLine));
+        const otherText = cleanText(trimmedLine);
+        if (otherText) {
+          currentOtherContent.push(otherText);
+        }
         break;
     }
   }
@@ -292,6 +305,7 @@ export function parseResume(markdown: string): ParsedResume {
 
 // Utility to get initials from name
 export function getInitials(name: string): string {
+  if (!name) return '';
   return name
     .split(' ')
     .map(part => part[0])
