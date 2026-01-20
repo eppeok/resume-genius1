@@ -21,9 +21,10 @@ import CouponManagement from "./pages/admin/CouponManagement";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
-
-const App = () => (
+const App = () => {
+  const queryClient = new QueryClient();
+  
+  return (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <TooltipProvider>
@@ -50,6 +51,7 @@ const App = () => (
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
