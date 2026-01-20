@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -12,6 +13,9 @@ import Dashboard from "./pages/Dashboard";
 import Optimize from "./pages/Optimize";
 import BuyCredits from "./pages/BuyCredits";
 import ProfileSettings from "./pages/ProfileSettings";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import ActivityLogs from "./pages/admin/ActivityLogs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +35,9 @@ const App = () => (
             <Route path="/optimize" element={<ProtectedRoute><Optimize /></ProtectedRoute>} />
             <Route path="/credits" element={<ProtectedRoute><BuyCredits /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+            <Route path="/admin/activity" element={<AdminRoute><ActivityLogs /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
