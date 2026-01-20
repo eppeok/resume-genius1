@@ -153,15 +153,41 @@ Your task:
 5. Ensure proper formatting that ATS systems can parse
 6. Keep the resume concise (ideally 1-2 pages worth of content)
 
-Output the optimized resume in clean, structured markdown format with the following sections:
-- Contact Information (name, professional title)
-- Professional Summary (3-4 sentences highlighting key qualifications)
-- Skills (bullet list of relevant skills)
-- Professional Experience (with achievements and metrics)
-- Education
-- Additional sections if relevant (certifications, projects, etc.)
+CRITICAL - Output Format Requirements:
+Use this EXACT markdown structure for optimal PDF rendering:
 
-Important: Only include truthful information based on what's provided. Do not fabricate experience or skills.`;
+## Professional Summary
+Write 3-4 sentences as a cohesive paragraph highlighting key qualifications.
+
+## Skills
+List skills separated by commas: Skill 1, Skill 2, Skill 3, Skill 4
+
+## Professional Experience
+
+### Job Title | Company Name | Jan 2020 - Present
+- Achievement with quantifiable result (increased X by Y%)
+- Another accomplishment with metrics
+- Key responsibility or project outcome
+
+### Previous Job Title | Previous Company | Mar 2017 - Dec 2019
+- Achievement bullet point
+- Another accomplishment
+
+## Education
+
+### Degree Name | University Name | 2016
+Field of study or honors if applicable
+
+## Certifications (if applicable)
+
+### Certification Name | Issuing Organization | Year
+
+Important Rules:
+- Use ### for job/education entries with pipe separators: ### Title | Organization | Date
+- Each bullet point must start with a dash and action verb
+- Keep bullets concise (1-2 lines each)
+- Include quantifiable metrics where possible
+- Only include truthful information from what's provided`;
 
     const userPrompt = `Please optimize the following resume for the target role.
 
