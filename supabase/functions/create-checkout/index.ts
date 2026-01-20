@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,9 +9,9 @@ const corsHeaders = {
 
 // Server-side validation: define valid credit packs with fixed pricing
 const VALID_PACKS: Record<string, { credits: number; price: number }> = {
-  "10-credits": { credits: 10, price: 9 },
-  "25-credits": { credits: 25, price: 19 },
-  "50-credits": { credits: 50, price: 29 },
+  "10-credits": { credits: 10, price: 900 }, // Price in cents
+  "25-credits": { credits: 25, price: 1900 },
+  "50-credits": { credits: 50, price: 2900 },
 };
 
 serve(async (req) => {
@@ -28,15 +28,23 @@ serve(async (req) => {
       });
     }
 
-    // Create Supabase client to get user with proper JWT verification
+    // Create Supabase client with service role for coupon validation
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    // Client for auth verification
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    
+    // Service client for coupon operations
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false },
+    });
 
-    // Verify the user's JWT token by getting user data
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Verify the user's JWT token
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
     
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid or expired token" }), {
@@ -55,8 +63,8 @@ serve(async (req) => {
       });
     }
 
-    // Validate pack_id from request body
-    const { pack_id } = await req.json();
+    // Validate pack_id and optional coupon_code from request body
+    const { pack_id, coupon_code } = await req.json();
 
     if (!pack_id || typeof pack_id !== "string") {
       return new Response(JSON.stringify({ error: "Missing or invalid pack_id" }), {
@@ -73,8 +81,51 @@ serve(async (req) => {
       });
     }
 
-    // Use server-validated price and credits
-    const { credits, price } = pack;
+    let { credits, price } = pack;
+    let couponId: string | null = null;
+    let discountAmount = 0;
+
+    // Validate coupon if provided
+    if (coupon_code && typeof coupon_code === "string") {
+      const { data: couponData, error: couponError } = await supabaseAdmin.rpc("validate_coupon", {
+        p_code: coupon_code,
+        p_user_id: userId,
+        p_purchase_amount: price,
+      });
+
+      if (couponError) {
+        console.error("Coupon validation error:", couponError);
+        return new Response(JSON.stringify({ error: "Failed to validate coupon" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const result = couponData?.[0];
+      if (!result?.is_valid) {
+        return new Response(JSON.stringify({ error: result?.error_message || "Invalid coupon" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      couponId = result.coupon_id;
+      
+      // Calculate discount
+      if (result.discount_type === "percentage") {
+        discountAmount = Math.round(price * (result.discount_value / 100));
+      } else {
+        discountAmount = Math.min(result.discount_value, price);
+      }
+      
+      price = price - discountAmount;
+      
+      // Ensure price doesn't go below 50 cents (Stripe minimum)
+      if (price < 50) {
+        price = 50;
+        discountAmount = pack.price - 50;
+      }
+    }
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
@@ -82,7 +133,7 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeKey, {
-      apiVersion: "2023-10-16",
+      apiVersion: "2025-08-27.basil",
     });
 
     // Check if customer exists
@@ -102,7 +153,7 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // SECURITY: Validate origin against allowlist to prevent open redirect attacks
+    // SECURITY: Validate origin against allowlist
     const ALLOWED_ORIGINS = [
       "https://resume-genius1.lovable.app",
       "https://id-preview--b35e338f-bffc-44f3-9115-efb92e2a0458.lovable.app",
@@ -117,11 +168,16 @@ serve(async (req) => {
     if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
       origin = requestOrigin;
     } else {
-      // Default to production domain for untrusted origins
       if (requestOrigin) {
         console.warn(`Rejected untrusted origin: ${requestOrigin}`);
       }
       origin = "https://resume-genius1.lovable.app";
+    }
+
+    // Build product description
+    let productDescription = `${credits} credits for ATS resume optimization`;
+    if (discountAmount > 0) {
+      productDescription += ` (Coupon: -$${(discountAmount / 100).toFixed(2)})`;
     }
 
     // Create checkout session with server-validated pricing
@@ -133,9 +189,9 @@ serve(async (req) => {
             currency: "usd",
             product_data: {
               name: `${credits} Resume Optimization Credits`,
-              description: `${credits} credits for ATS resume optimization`,
+              description: productDescription,
             },
-            unit_amount: price * 100, // Convert to cents - using server-validated price
+            unit_amount: price,
           },
           quantity: 1,
         },
@@ -145,10 +201,15 @@ serve(async (req) => {
       cancel_url: `${origin}/credits?canceled=true`,
       metadata: {
         user_id: userId,
-        credits: credits.toString(), // Using server-validated credits
-        pack_id: pack_id, // For audit trail
+        credits: credits.toString(),
+        pack_id: pack_id,
+        coupon_id: couponId || "",
+        discount_amount: discountAmount.toString(),
       },
     });
+
+    // Note: Coupon usage will be incremented when payment succeeds via webhook
+    // This prevents incrementing on abandoned checkouts
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

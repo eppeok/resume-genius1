@@ -1,6 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 // SECURITY: Define valid credit packs server-side to prevent manipulation
 const VALID_PACKS: Record<string, { credits: number; price: number }> = {
@@ -25,7 +25,7 @@ serve(async (req) => {
   }
 
   const stripe = new Stripe(stripeKey, {
-    apiVersion: "2023-10-16",
+    apiVersion: "2025-08-27.basil",
   });
 
   const signature = req.headers.get("stripe-signature");
@@ -52,6 +52,8 @@ serve(async (req) => {
     const userId = session.metadata?.user_id;
     const credits = parseInt(session.metadata?.credits || "0", 10);
     const packId = session.metadata?.pack_id;
+    const couponId = session.metadata?.coupon_id || null;
+    const discountAmount = parseInt(session.metadata?.discount_amount || "0", 10);
     const amountTotal = session.amount_total || 0;
 
     // SECURITY: Validate all required metadata fields
@@ -60,18 +62,35 @@ serve(async (req) => {
       return new Response("Invalid metadata", { status: 400 });
     }
 
-    // SECURITY: Validate pack exists and pricing matches expected values
+    // SECURITY: Validate pack exists
     if (!packId || !VALID_PACKS[packId]) {
       console.error("Invalid or missing pack_id:", packId);
       return new Response("Invalid pack", { status: 400 });
     }
 
     const expectedPack = VALID_PACKS[packId];
-    if (expectedPack.credits !== credits || expectedPack.price !== amountTotal) {
-      console.error("Price/credit mismatch:", { 
+    
+    // SECURITY: Validate pricing - accounting for potential coupon discount
+    const expectedPriceWithDiscount = expectedPack.price - discountAmount;
+    const minPrice = Math.max(50, expectedPriceWithDiscount); // Stripe minimum is 50 cents
+    
+    if (expectedPack.credits !== credits) {
+      console.error("Credit mismatch:", { 
         packId, 
-        expected: expectedPack, 
-        actual: { credits, amountTotal } 
+        expected: expectedPack.credits, 
+        actual: credits 
+      });
+      return new Response("Invalid credit amount", { status: 400 });
+    }
+
+    // Allow for coupon discounts - verify the amount is within expected range
+    if (amountTotal > expectedPack.price || amountTotal < minPrice) {
+      console.error("Price mismatch:", { 
+        packId, 
+        expectedOriginal: expectedPack.price,
+        expectedWithDiscount: minPrice,
+        actual: amountTotal,
+        discountAmount
       });
       return new Response("Invalid payment amount", { status: 400 });
     }
@@ -79,7 +98,9 @@ serve(async (req) => {
     // Create Supabase admin client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
 
     // SECURITY: Check for duplicate session to prevent replay attacks
     const { data: existingTransaction } = await supabase
@@ -107,6 +128,10 @@ serve(async (req) => {
     }
 
     // Record transaction
+    const transactionDescription = couponId 
+      ? `Purchased ${credits} credits (with coupon discount: -$${(discountAmount / 100).toFixed(2)})`
+      : `Purchased ${credits} credits`;
+
     const { error: transactionError } = await supabase
       .from("credit_transactions")
       .insert({
@@ -114,12 +139,45 @@ serve(async (req) => {
         amount: credits,
         price_paid: amountTotal,
         stripe_session_id: session.id,
-        description: `Purchased ${credits} credits`,
+        description: transactionDescription,
       });
 
     if (transactionError) {
       console.error("Failed to record transaction:", transactionError);
       // Don't fail the webhook for this - credits already added
+    }
+
+    // If a coupon was used, record the redemption and increment usage
+    if (couponId) {
+      // Increment coupon usage
+      const { data: couponData } = await supabase
+        .from("coupons")
+        .select("current_uses")
+        .eq("id", couponId)
+        .single();
+      
+      if (couponData) {
+        await supabase
+          .from("coupons")
+          .update({ current_uses: couponData.current_uses + 1 })
+          .eq("id", couponId);
+      }
+
+      // Record coupon redemption
+      const { data: transactionData } = await supabase
+        .from("credit_transactions")
+        .select("id")
+        .eq("stripe_session_id", session.id)
+        .maybeSingle();
+
+      await supabase.from("coupon_redemptions").insert({
+        coupon_id: couponId,
+        user_id: userId,
+        transaction_id: transactionData?.id || null,
+        discount_applied: discountAmount,
+      });
+
+      console.log(`Recorded coupon redemption for coupon ${couponId}`);
     }
 
     console.log(`Added ${credits} credits to user ${userId}`);

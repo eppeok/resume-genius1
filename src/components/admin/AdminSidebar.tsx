@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, Activity, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, Users, Activity, ArrowLeft, Ticket } from "lucide-react";
 
 const adminLinks = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/coupons", label: "Coupons", icon: Ticket },
   { to: "/admin/activity", label: "Activity", icon: Activity },
 ];
 
