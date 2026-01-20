@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Optimize from "./pages/Optimize";
+import ResumeDetail from "./pages/ResumeDetail";
 import BuyCredits from "./pages/BuyCredits";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import TransactionHistory from "./pages/TransactionHistory";
@@ -41,6 +42,7 @@ const App = () => {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/optimize" element={<ProtectedRoute><Optimize /></ProtectedRoute>} />
+            <Route path="/resume/:id" element={<ProtectedRoute><ResumeDetail /></ProtectedRoute>} />
             <Route path="/credits" element={<ProtectedRoute><BuyCredits /></ProtectedRoute>} />
             <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
             <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
