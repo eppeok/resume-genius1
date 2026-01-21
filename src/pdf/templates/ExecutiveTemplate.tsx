@@ -1,11 +1,16 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, type ResumeEntry } from "./parseResume";
 import { normalizeWhitespace, prepareBullets, prepareSkills } from "./styles";
+import { PdfBulletList } from "./components/PdfBulletList";
 
 // Executive - Premium design with navy header, gold accents, sophisticated layout
 const navyColor = "#0f172a";
 const goldColor = "#b8860b";
 const goldLight = "#d4a847";
+
+// Fixed dimensions for stable layout
+const HEADER_HEIGHT = 100;
+const RIGHT_COLUMN_WIDTH = 180;
 
 const styles = StyleSheet.create({
   page: {
@@ -17,20 +22,25 @@ const styles = StyleSheet.create({
   },
   // Premium header band - fixed to repeat on pages
   headerBand: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: HEADER_HEIGHT,
     backgroundColor: navyColor,
     paddingHorizontal: 35,
-    paddingTop: 35,
-    paddingBottom: 28,
+    paddingTop: 30,
+    paddingBottom: 20,
   },
   headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    gap: 20,
   },
   nameBlock: {
-    flex: 1,
+    flexGrow: 1,
     flexShrink: 1,
+    marginRight: 20,
   },
   name: {
     fontSize: 26,
@@ -76,15 +86,19 @@ const styles = StyleSheet.create({
     textDecoration: "none",
     textAlign: "left",
   },
-  // Gold accent line
+  // Gold accent line - fixed below header
   goldAccent: {
+    position: "absolute",
+    top: HEADER_HEIGHT,
+    left: 0,
+    right: 0,
     height: 3,
     backgroundColor: goldColor,
   },
-  // Body
+  // Body - starts below header + accent
   body: {
     paddingHorizontal: 35,
-    paddingTop: 20,
+    paddingTop: HEADER_HEIGHT + 23,
     paddingBottom: 20,
   },
   // Full width summary
@@ -108,16 +122,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: "justify",
   },
-  // Two column layout - allow wrapping
+  // Two column layout using flexbox with explicit sizing
   twoColumn: {
     flexDirection: "row",
-    gap: 25,
   },
   leftColumn: {
-    width: "60%",
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    marginRight: 25,
   },
   rightColumn: {
-    width: "40%",
+    width: RIGHT_COLUMN_WIDTH,
+    flexShrink: 0,
   },
   // Section styling
   section: {
@@ -157,11 +174,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 3,
-    gap: 6,
   },
   entryTitleBlock: {
-    flex: 1,
+    flexGrow: 1,
     flexShrink: 1,
+    flexBasis: 0,
+    marginRight: 6,
   },
   entryTitle: {
     fontSize: 10,
@@ -185,32 +203,10 @@ const styles = StyleSheet.create({
     textAlign: "right",
     flexShrink: 0,
   },
-  bulletList: {
-    marginTop: 5,
-  },
-  bulletItem: {
-    flexDirection: "row",
-    marginBottom: 3,
-    alignItems: "flex-start",
-  },
-  bulletPoint: {
-    width: 10,
-    color: goldColor,
-    fontSize: 7,
-    flexShrink: 0,
-  },
-  bulletText: {
-    flex: 1,
-    color: "#4b5563",
-    fontSize: 8,
-    lineHeight: 1.4,
-    flexShrink: 1,
-  },
   // Skills as elegant tags
   skillsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 4,
   },
   skillTag: {
     fontSize: 7,
@@ -221,6 +217,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     borderWidth: 1,
     borderColor: goldLight,
+    marginRight: 4,
+    marginBottom: 4,
   },
   // Education
   educationEntry: {
@@ -267,7 +265,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 35,
   },
   footerLine: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
     height: 1,
     backgroundColor: "#e5e7eb",
   },
@@ -319,16 +318,13 @@ function ExperienceEntry({ entry }: { entry: ResumeEntry }) {
           <Text style={styles.entryDate}>{entry.dateRange}</Text>
         )}
       </View>
-      {bullets.length > 0 && (
-        <View style={styles.bulletList}>
-          {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem} wrap={false}>
-              <Text style={styles.bulletPoint}>■</Text>
-              <Text style={styles.bulletText}>{bullet}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      <PdfBulletList
+        bullets={bullets}
+        bulletSymbol="■"
+        bulletColor={goldColor}
+        textColor="#4b5563"
+        fontSize={8}
+      />
     </View>
   );
 }
@@ -366,7 +362,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Premium Header Band - fixed to repeat on pages */}
+        {/* Premium Header Band - fixed and absolutely positioned */}
         <View style={styles.headerBand} fixed>
           <View style={styles.headerContent}>
             <View style={styles.nameBlock}>
@@ -409,10 +405,10 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
           </View>
         </View>
         
-        {/* Gold Accent Line */}
+        {/* Gold Accent Line - fixed below header */}
         <View style={styles.goldAccent} fixed />
 
-        {/* Body */}
+        {/* Body - starts below fixed header */}
         <View style={styles.body}>
           {/* Full-width Executive Summary */}
           {resume.summary.length > 0 && (
