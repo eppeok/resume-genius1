@@ -165,7 +165,7 @@ CRITICAL - Output Format Requirements:
 Use this EXACT markdown structure for optimal PDF rendering:
 
 ## Professional Summary
-Write 3-4 sentences as a cohesive paragraph highlighting key qualifications.
+Write 3-4 sentences as a cohesive paragraph. NO bold text, NO bullet points here.
 
 ## Skills
 List skills separated by commas: Skill 1, Skill 2, Skill 3, Skill 4
@@ -190,12 +190,28 @@ Field of study or honors if applicable
 
 ### Certification Name | Issuing Organization | Year
 
-Important Rules:
-- Use ### for job/education entries with pipe separators: ### Title | Organization | Date
-- Each bullet point must start with a dash and action verb
-- Keep bullets concise (1-2 lines each)
-- Include quantifiable metrics where possible
-- Only include truthful information from what's provided`;
+STRICT FORMATTING RULES (MUST FOLLOW):
+1. Section headers use ## (e.g., ## Professional Experience)
+2. Job/Education entries use ### with pipe separators: ### Title | Organization | Date
+3. Bullet points start with a dash followed by a space: "- "
+4. NEVER use bold (**) or italic (*) formatting inside bullet points
+5. NEVER use bold (**) or italic (*) at the start of bullet text
+6. Each bullet must be plain text only - no markdown formatting
+7. Keep each bullet to ONE sentence, maximum 15 words
+8. Start each bullet with a strong action verb (Led, Managed, Developed, etc.)
+9. Include quantifiable metrics where possible (increased X by Y%)
+10. Maximum 4-5 bullets per job entry
+11. Only include truthful information from what's provided
+
+WRONG FORMAT (DO NOT USE):
+- **Led** end-to-end digital strategy... ❌
+- *Managed* cross-functional teams... ❌
+- Developed and **implemented** new systems... ❌
+
+CORRECT FORMAT (USE THIS):
+- Led end-to-end digital strategy for 50+ client accounts
+- Managed cross-functional teams of 12 engineers
+- Developed automated systems reducing costs by 30%`;
 
     const userPrompt = `Please optimize the following resume for the target role.
 
