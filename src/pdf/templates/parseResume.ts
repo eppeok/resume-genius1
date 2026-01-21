@@ -142,15 +142,15 @@ function categorizeSection(title: string): 'summary' | 'experience' | 'education
   return 'other';
 }
 
-// Sanitize content for PDF - remove invisible chars, normalize whitespace
+// Sanitize content for PDF - remove invisible chars, normalize horizontal whitespace only
 function sanitizeForPdf(text: string): string {
   return text
     // Remove zero-width characters
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
     // Normalize various dash types to standard hyphen
     .replace(/[–—―]/g, '-')
-    // Normalize whitespace
-    .replace(/\s+/g, ' ')
+    // Normalize horizontal whitespace only (preserve newlines for parsing)
+    .replace(/[^\S\n]+/g, ' ')
     .trim();
 }
 
@@ -167,9 +167,8 @@ export function parseResume(markdown: string): ParsedResume {
   
   if (!markdown) return result;
   
-  // Sanitize the markdown first
-  const sanitizedMarkdown = sanitizeForPdf(markdown);
-  const lines = sanitizedMarkdown.split('\n');
+  // Split by lines directly - don't sanitize the full markdown as it destroys structure
+  const lines = markdown.split('\n');
   let currentSection: ReturnType<typeof categorizeSection> = 'other';
   let currentSectionTitle = '';
   let currentEntry: ResumeEntry | null = null;

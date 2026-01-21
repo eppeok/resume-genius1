@@ -190,28 +190,26 @@ Field of study or honors if applicable
 
 ### Certification Name | Issuing Organization | Year
 
-STRICT FORMATTING RULES (MUST FOLLOW):
+FORMATTING RULES:
 1. Section headers use ## (e.g., ## Professional Experience)
 2. Job/Education entries use ### with pipe separators: ### Title | Organization | Date
 3. Bullet points start with a dash followed by a space: "- "
 4. NEVER use bold (**) or italic (*) formatting inside bullet points
-5. NEVER use bold (**) or italic (*) at the start of bullet text
-6. Each bullet must be plain text only - no markdown formatting
-7. Keep each bullet to ONE sentence, maximum 15 words
-8. Start each bullet with a strong action verb (Led, Managed, Developed, etc.)
-9. Include quantifiable metrics where possible (increased X by Y%)
-10. Maximum 4-5 bullets per job entry
-11. Only include truthful information from what's provided
+5. Each bullet must be plain text only - no markdown formatting
+6. Keep bullets impactful and concise (1-2 lines each)
+7. Start each bullet with a strong action verb (Led, Managed, Developed, etc.)
+8. ALWAYS preserve quantifiable metrics and achievements from the original resume
+9. Include 3-6 impactful bullets per role - more detail is better for ATS
+10. Only include truthful information from what's provided
 
-WRONG FORMAT (DO NOT USE):
-- **Led** end-to-end digital strategy... ❌
-- *Managed* cross-functional teams... ❌
-- Developed and **implemented** new systems... ❌
+WRONG (never use inline bold/italic):
+- **Led** strategy... ❌
+- *Managed* teams... ❌
 
-CORRECT FORMAT (USE THIS):
-- Led end-to-end digital strategy for 50+ client accounts
-- Managed cross-functional teams of 12 engineers
-- Developed automated systems reducing costs by 30%`;
+CORRECT (plain text with metrics):
+- Led end-to-end digital strategy for 50+ client accounts, increasing engagement by 40%
+- Managed cross-functional teams of 12 engineers delivering 3 major product launches
+- Developed automated systems reducing operational costs by 30% annually`;
 
     const userPrompt = `Please optimize the following resume for the target role.
 
