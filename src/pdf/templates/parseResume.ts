@@ -52,7 +52,8 @@ function extractDate(text: string): string | undefined {
   return undefined;
 }
 
-function parseJobEntry(line: string): ResumeEntry | null {
+function parseJobEntry(line: string, strictMode: boolean = false): ResumeEntry | null {
+  // In strict mode, only match explicit patterns (### headers or pipe-separated)
   for (const pattern of JOB_ENTRY_PATTERNS) {
     const match = line.match(pattern);
     if (match) {
@@ -69,19 +70,27 @@ function parseJobEntry(line: string): ResumeEntry | null {
     }
   }
   
-  // Fallback: detect bold text as potential job title
+  // In strict mode, don't use the bold fallback - it causes misclassification
+  if (strictMode) {
+    return null;
+  }
+  
+  // Fallback: detect bold text as potential job title ONLY if it also contains a date
   const boldMatch = line.match(/^\*\*(.+?)\*\*/);
   if (boldMatch) {
     const rest = line.replace(/^\*\*.+?\*\*\s*/, '');
     const dateMatch = extractDate(rest);
-    const orgMatch = rest.replace(dateMatch || '', '').replace(/[|,\-–—]/g, ' ').trim();
     
-    return {
-      title: cleanText(boldMatch[1]),
-      organization: cleanText(orgMatch) || '',
-      dateRange: dateMatch,
-      bullets: [],
-    };
+    // Only treat as entry if there's a date present (otherwise it's just bold text in content)
+    if (dateMatch) {
+      const orgMatch = rest.replace(dateMatch || '', '').replace(/[|,\-–—]/g, ' ').trim();
+      return {
+        title: cleanText(boldMatch[1]),
+        organization: cleanText(orgMatch) || '',
+        dateRange: dateMatch,
+        bullets: [],
+      };
+    }
   }
   
   return null;
@@ -133,6 +142,18 @@ function categorizeSection(title: string): 'summary' | 'experience' | 'education
   return 'other';
 }
 
+// Sanitize content for PDF - remove invisible chars, normalize whitespace
+function sanitizeForPdf(text: string): string {
+  return text
+    // Remove zero-width characters
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    // Normalize various dash types to standard hyphen
+    .replace(/[–—―]/g, '-')
+    // Normalize whitespace
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function parseResume(markdown: string): ParsedResume {
   const result: ParsedResume = {
     summary: [],
@@ -146,7 +167,9 @@ export function parseResume(markdown: string): ParsedResume {
   
   if (!markdown) return result;
   
-  const lines = markdown.split('\n');
+  // Sanitize the markdown first
+  const sanitizedMarkdown = sanitizeForPdf(markdown);
+  const lines = sanitizedMarkdown.split('\n');
   let currentSection: ReturnType<typeof categorizeSection> = 'other';
   let currentSectionTitle = '';
   let currentEntry: ResumeEntry | null = null;
@@ -231,8 +254,11 @@ export function parseResume(markdown: string): ParsedResume {
       case 'education':
       case 'certifications':
       case 'projects':
-        // Try to detect new entry
-        const entry = parseJobEntry(trimmedLine);
+        // Use strict mode for entry detection - only explicit ### headers or pipe-separated patterns
+        // This prevents bold text within bullets from being misclassified as new entries
+        const isExplicitHeader = trimmedLine.startsWith('### ') || trimmedLine.startsWith('## ');
+        const entry = isExplicitHeader ? parseJobEntry(trimmedLine, false) : parseJobEntry(trimmedLine, true);
+        
         if (entry) {
           // Save previous entry
           if (currentEntry) {
@@ -243,34 +269,46 @@ export function parseResume(markdown: string): ParsedResume {
           }
           currentEntry = entry;
         } else if (currentEntry) {
-          // Add to current entry
+          // Add to current entry as bullet or content
           if (isBulletPoint(trimmedLine)) {
             const bulletText = extractBulletText(trimmedLine);
             if (bulletText) {
-              currentEntry.bullets.push(bulletText);
+              currentEntry.bullets.push(sanitizeForPdf(bulletText));
             }
           } else {
-            // Could be company/org line or continuation
-            const text = cleanText(trimmedLine);
-            if (!currentEntry.organization && !isBulletPoint(text)) {
-              // Check if it looks like an org line
-              const dateInLine = extractDate(text);
-              if (dateInLine && !currentEntry.dateRange) {
-                currentEntry.dateRange = dateInLine;
-                const orgText = text.replace(dateInLine, '').replace(/[|,\-–—]/g, ' ').trim();
-                if (orgText) currentEntry.organization = orgText;
-              } else if (text) {
-                currentEntry.organization = text;
+            // Check if it's bold text that should be treated as a bullet (not a new entry)
+            const boldMatch = trimmedLine.match(/^\*\*(.+?)\*\*(.*)/);
+            if (boldMatch) {
+              // This is bold text within an entry - treat as bullet content, not new entry
+              const bulletContent = cleanText(boldMatch[1] + (boldMatch[2] || ''));
+              if (bulletContent) {
+                currentEntry.bullets.push(sanitizeForPdf(bulletContent));
               }
-            } else if (text && text.length > 0) {
-              currentEntry.bullets.push(text);
+            } else {
+              // Could be company/org line or continuation
+              const text = cleanText(trimmedLine);
+              if (!currentEntry.organization && !isBulletPoint(text)) {
+                // Check if it looks like an org line
+                const dateInLine = extractDate(text);
+                if (dateInLine && !currentEntry.dateRange) {
+                  currentEntry.dateRange = dateInLine;
+                  const orgText = text.replace(dateInLine, '').replace(/[|,\-–—]/g, ' ').trim();
+                  if (orgText) currentEntry.organization = orgText;
+                } else if (text) {
+                  currentEntry.organization = text;
+                }
+              } else if (text && text.length > 0) {
+                currentEntry.bullets.push(sanitizeForPdf(text));
+              }
             }
           }
         } else {
-          // No current entry, create one from bold text or treat as general content
-          const boldEntry = parseJobEntry(trimmedLine);
-          if (boldEntry) {
-            currentEntry = boldEntry;
+          // No current entry yet - only create from explicit header patterns
+          if (isExplicitHeader) {
+            const newEntry = parseJobEntry(trimmedLine, false);
+            if (newEntry) {
+              currentEntry = newEntry;
+            }
           }
         }
         break;
