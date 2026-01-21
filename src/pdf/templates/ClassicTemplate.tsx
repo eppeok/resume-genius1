@@ -1,8 +1,12 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, type ResumeEntry } from "./parseResume";
 import { normalizeWhitespace, prepareBullets, prepareSkills } from "./styles";
+import { PdfBulletList } from "./components/PdfBulletList";
 
 // Classic Professional - Elegant serif-inspired design with navy accents
+const primaryColor = "#1e3a5f";
+const accentColor = "#4a6fa5";
+
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -16,19 +20,19 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 18,
     borderBottomWidth: 2,
-    borderBottomColor: "#1e3a5f",
+    borderBottomColor: primaryColor,
     paddingBottom: 14,
   },
   name: {
     fontSize: 26,
     fontFamily: "Helvetica-Bold",
-    color: "#1e3a5f",
+    color: primaryColor,
     marginBottom: 4,
     letterSpacing: 1,
   },
   title: {
     fontSize: 11,
-    color: "#4a6fa5",
+    color: accentColor,
     marginBottom: 10,
     letterSpacing: 0.5,
     fontFamily: "Helvetica-Oblique",
@@ -36,12 +40,12 @@ const styles = StyleSheet.create({
   contactRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 15,
-    rowGap: 6,
   },
   contactItem: {
     flexDirection: "row",
     alignItems: "flex-start",
+    marginRight: 15,
+    marginBottom: 6,
     maxWidth: "48%",
   },
   contactLabel: {
@@ -59,7 +63,7 @@ const styles = StyleSheet.create({
   },
   contactLink: {
     fontSize: 8,
-    color: "#4a6fa5",
+    color: accentColor,
     textDecoration: "none",
     flexShrink: 1,
   },
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
-    color: "#1e3a5f",
+    color: primaryColor,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 1.5,
@@ -94,20 +98,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 2,
-    gap: 8,
   },
   entryTitleBlock: {
-    flex: 1,
+    flexGrow: 1,
     flexShrink: 1,
+    flexBasis: 0,
+    marginRight: 8,
   },
   entryTitle: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
-    color: "#1e3a5f",
+    color: primaryColor,
   },
   entryOrg: {
     fontSize: 9,
-    color: "#4a6fa5",
+    color: accentColor,
     marginTop: 1,
   },
   entryDate: {
@@ -122,33 +127,10 @@ const styles = StyleSheet.create({
     color: "#8b98a8",
     marginTop: 1,
   },
-  bulletList: {
-    marginTop: 4,
-    paddingLeft: 2,
-  },
-  bulletItem: {
-    flexDirection: "row",
-    marginBottom: 3,
-    alignItems: "flex-start",
-  },
-  bulletPoint: {
-    width: 10,
-    color: "#4a6fa5",
-    fontSize: 9,
-    flexShrink: 0,
-  },
-  bulletText: {
-    flex: 1,
-    color: "#374151",
-    fontSize: 8,
-    lineHeight: 1.4,
-    flexShrink: 1,
-  },
   // Skills
   skillsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 5,
     marginTop: 4,
   },
   skillTag: {
@@ -157,9 +139,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 2,
     fontSize: 8,
-    color: "#1e3a5f",
+    color: primaryColor,
     borderWidth: 1,
     borderColor: "#d1d9e6",
+    marginRight: 5,
+    marginBottom: 5,
   },
   // Education
   educationEntry: {
@@ -168,23 +152,24 @@ const styles = StyleSheet.create({
   eduDegree: {
     fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    color: "#1e3a5f",
+    color: primaryColor,
   },
   eduSchool: {
     fontSize: 8,
-    color: "#4a6fa5",
+    color: accentColor,
     marginTop: 1,
   },
   eduDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 1,
-    gap: 8,
   },
   eduLocation: {
     fontSize: 7,
     color: "#8b98a8",
+    flexGrow: 1,
     flexShrink: 1,
+    marginRight: 8,
   },
   eduDate: {
     fontSize: 7,
@@ -233,16 +218,13 @@ function ExperienceEntryComponent({ entry }: { entry: ResumeEntry }) {
           <Text style={styles.entryDate}>{entry.dateRange}</Text>
         )}
       </View>
-      {bullets.length > 0 && (
-        <View style={styles.bulletList}>
-          {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem} wrap={false}>
-              <Text style={styles.bulletPoint}>•</Text>
-              <Text style={styles.bulletText}>{bullet}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      <PdfBulletList
+        bullets={bullets}
+        bulletSymbol="•"
+        bulletColor={accentColor}
+        textColor="#374151"
+        fontSize={8}
+      />
     </View>
   );
 }
@@ -264,16 +246,13 @@ function EducationEntryComponent({ entry }: { entry: ResumeEntry }) {
           <Text style={styles.eduDate}>{entry.dateRange}</Text>
         )}
       </View>
-      {bullets.length > 0 && (
-        <View style={styles.bulletList}>
-          {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem} wrap={false}>
-              <Text style={styles.bulletPoint}>•</Text>
-              <Text style={styles.bulletText}>{bullet}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      <PdfBulletList
+        bullets={bullets}
+        bulletSymbol="•"
+        bulletColor={accentColor}
+        textColor="#374151"
+        fontSize={8}
+      />
     </View>
   );
 }

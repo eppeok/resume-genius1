@@ -1,22 +1,31 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, getInitials, type ResumeEntry } from "./parseResume";
 import { normalizeWhitespace, prepareBullets, prepareSkills } from "./styles";
+import { PdfBulletList } from "./components/PdfBulletList";
 
 // Modern Clean - Two-column layout with teal accents and experience cards
 const primaryColor = "#0d9488";
 const darkColor = "#134e4a";
 const sidebarBg = "#0f172a";
 
+// Fixed sidebar width in points for stable multi-page layout
+const SIDEBAR_WIDTH = 170;
+const PAGE_WIDTH = 595; // A4 width in points
+const MAIN_WIDTH = PAGE_WIDTH - SIDEBAR_WIDTH;
+
 const styles = StyleSheet.create({
   page: {
-    flexDirection: "row",
     fontSize: 9,
     fontFamily: "Helvetica",
     lineHeight: 1.4,
   },
-  // Sidebar - fixed to span all pages
+  // Sidebar - absolutely positioned, fixed to span all pages
   sidebar: {
-    width: "32%",
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: SIDEBAR_WIDTH,
     backgroundColor: sidebarBg,
     padding: 20,
     paddingTop: 30,
@@ -81,19 +90,19 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   contactText: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
     fontSize: 8,
     color: "#cbd5e1",
     lineHeight: 1.3,
-    flexShrink: 1,
   },
   contactLink: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
     fontSize: 8,
     color: "#cbd5e1",
     textDecoration: "none",
     lineHeight: 1.3,
-    flexShrink: 1,
   },
   // Skills
   skillItem: {
@@ -118,7 +127,6 @@ const styles = StyleSheet.create({
   skillTags: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 3,
     marginTop: 6,
   },
   skillTag: {
@@ -128,14 +136,18 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 5,
     borderRadius: 2,
+    marginRight: 3,
+    marginBottom: 3,
   },
-  // Main content
+  // Main content - offset by sidebar width
   main: {
-    width: "68%",
+    marginLeft: SIDEBAR_WIDTH,
+    width: MAIN_WIDTH,
     padding: 25,
     paddingTop: 30,
     paddingBottom: 50,
     backgroundColor: "#ffffff",
+    minHeight: "100%",
   },
   mainSection: {
     marginBottom: 14,
@@ -172,11 +184,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 2,
-    gap: 6,
   },
   cardTitleBlock: {
-    flex: 1,
+    flexGrow: 1,
     flexShrink: 1,
+    flexBasis: 0,
+    marginRight: 6,
   },
   cardTitle: {
     fontSize: 10,
@@ -202,27 +215,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     flexShrink: 0,
   },
-  bulletList: {
-    marginTop: 4,
-  },
-  bulletItem: {
-    flexDirection: "row",
-    marginBottom: 3,
-    alignItems: "flex-start",
-  },
-  bulletPoint: {
-    width: 12,
-    color: primaryColor,
-    fontSize: 7,
-    flexShrink: 0,
-  },
-  bulletText: {
-    flex: 1,
-    color: "#4b5563",
-    fontSize: 8,
-    lineHeight: 1.4,
-    flexShrink: 1,
-  },
   // Education
   educationEntry: {
     marginBottom: 8,
@@ -241,12 +233,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 2,
-    gap: 6,
   },
   eduLocation: {
     fontSize: 7,
     color: "#9ca3af",
+    flexGrow: 1,
     flexShrink: 1,
+    marginRight: 6,
   },
   eduDate: {
     fontSize: 7,
@@ -314,16 +307,14 @@ function ExperienceCard({ entry }: { entry: ResumeEntry }) {
           <Text style={styles.cardDate}>{entry.dateRange}</Text>
         )}
       </View>
-      {bullets.length > 0 && (
-        <View style={styles.bulletList}>
-          {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem} wrap={false}>
-              <Text style={styles.bulletPoint}>▸</Text>
-              <Text style={styles.bulletText}>{bullet}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      <PdfBulletList
+        bullets={bullets}
+        bulletSymbol="▸"
+        bulletColor={primaryColor}
+        textColor="#4b5563"
+        fontSize={8}
+        bulletWidth={12}
+      />
     </View>
   );
 }
@@ -355,7 +346,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Sidebar - fixed to span pages */}
+        {/* Sidebar - fixed and absolutely positioned to span all pages */}
         <View style={styles.sidebar} fixed>
           {/* Avatar with initials */}
           <View style={styles.avatarCircle}>
@@ -442,7 +433,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
           )}
         </View>
 
-        {/* Main Content */}
+        {/* Main Content - offset by sidebar width */}
         <View style={styles.main}>
           {/* Summary */}
           {resume.summary.length > 0 && (
