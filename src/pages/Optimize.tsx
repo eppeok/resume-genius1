@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
-import { TemplateSelector } from "@/components/TemplateSelector";
+
 import { EditableResumeContent } from "@/components/EditableResumeContent";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,7 @@ export default function Optimize() {
   const [optimizedResume, setOptimizedResume] = useState("");
   const [editedResume, setEditedResume] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  
   const [isDownloading, setIsDownloading] = useState(false);
 
   const analyzeResume = async (resume: string, jobDescription: string): Promise<ATSScores> => {
@@ -245,8 +245,7 @@ export default function Optimize() {
       });
       
       console.log("PDF blob generated, size:", blob.size);
-      downloadPDF(blob, `${formData?.fullName || "resume"}-${template}.pdf`);
-      setShowTemplateSelector(false);
+      downloadPDF(blob, `${formData?.fullName || "resume"}.pdf`);
       toast({
         title: "Downloaded!",
         description: "Your PDF resume has been downloaded",
@@ -419,9 +418,14 @@ export default function Optimize() {
                       <Copy className="h-4 w-4" />
                       Copy
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => setShowTemplateSelector(true)}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDownloadPDF("minimal")}
+                      disabled={isDownloading}
+                    >
                       <Download className="h-4 w-4" />
-                      Download PDF
+                      {isDownloading ? "Generating..." : "Download PDF"}
                     </Button>
                   </div>
                 </div>
@@ -442,22 +446,6 @@ export default function Optimize() {
             </Button>
           </div>
         )}
-
-        <TemplateSelector
-          open={showTemplateSelector}
-          onOpenChange={setShowTemplateSelector}
-          onSelect={handleDownloadPDF}
-          isDownloading={isDownloading}
-          resumeContent={editedResume || optimizedResume}
-          fullName={formData?.fullName}
-          targetRole={formData?.targetRole}
-          contactInfo={{
-            email: formData?.email,
-            phone: formData?.phone,
-            location: formData?.location,
-            linkedinUrl: formData?.linkedinUrl,
-          }}
-        />
       </div>
     </div>
   );
