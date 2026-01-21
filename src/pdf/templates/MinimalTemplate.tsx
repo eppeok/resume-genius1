@@ -201,15 +201,18 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
           <Text style={styles.name}>{fullName || "Your Name"}</Text>
           {targetRole && <Text style={styles.role}>{targetRole}</Text>}
           
-          {(contactParts.length > 0 || linkedinUrl) && (
+          {contactParts.length > 0 && !linkedinUrl && (
+            <Text style={styles.contactLine}>{contactParts.join(" | ")}</Text>
+          )}
+          {contactParts.length > 0 && linkedinUrl && (
             <Text style={styles.contactLine}>
-              {contactParts.join(" | ")}
-              {contactParts.length > 0 && linkedinUrl && " | "}
-              {linkedinUrl && (
-                <Link src={linkedinUrl} style={styles.contactLink}>
-                  LinkedIn
-                </Link>
-              )}
+              {contactParts.join(" | ")} |{" "}
+              <Link src={linkedinUrl} style={styles.contactLink}>LinkedIn</Link>
+            </Text>
+          )}
+          {contactParts.length === 0 && linkedinUrl && (
+            <Text style={styles.contactLine}>
+              <Link src={linkedinUrl} style={styles.contactLink}>LinkedIn</Link>
             </Text>
           )}
         </View>
