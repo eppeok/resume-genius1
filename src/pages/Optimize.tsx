@@ -16,7 +16,7 @@ import { generatePDF, downloadPDF, TemplateName } from "@/pdf/PDFGenerator";
 import ReactMarkdown from "react-markdown";
 import { 
   FileCheck, Download, Copy, RefreshCw, 
-  Loader2, TrendingUp, Sparkles, AlertCircle 
+  Loader2, TrendingUp, Sparkles, AlertCircle, Save, Check
 } from "lucide-react";
 
 interface ATSScores {
@@ -40,6 +40,9 @@ export default function Optimize() {
   const [optimizedResume, setOptimizedResume] = useState("");
   const [editedResume, setEditedResume] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [savedResumeId, setSavedResumeId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -174,7 +177,7 @@ export default function Optimize() {
       setOptimizedScores(optimizedScoresResult);
 
       // Save to database (credit already deducted server-side)
-      await supabase.from("resumes").insert({
+      const { data: insertedResume } = await supabase.from("resumes").insert({
         user_id: profile.id,
         original_resume: data.currentResume,
         optimized_resume: fullContent,
@@ -192,7 +195,11 @@ export default function Optimize() {
         section_score_after: optimizedScoresResult.sections,
         readability_before: scores.readability,
         readability_after: optimizedScoresResult.readability,
-      });
+      }).select("id").single();
+      
+      if (insertedResume) {
+        setSavedResumeId(insertedResume.id);
+      }
 
       // Refresh profile to update credits display
       await refreshProfile();
@@ -263,6 +270,40 @@ export default function Optimize() {
     }
   };
 
+  const handleSaveEdits = async () => {
+    if (!savedResumeId || !hasUnsavedChanges) return;
+    
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("resumes")
+        .update({ optimized_resume: editedResume })
+        .eq("id", savedResumeId);
+      
+      if (error) throw error;
+      
+      setHasUnsavedChanges(false);
+      toast({
+        title: "Saved!",
+        description: "Your edits have been saved. The PDF will now reflect your changes.",
+      });
+    } catch (error) {
+      console.error("Save error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save changes",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleContentChange = (newContent: string) => {
+    setEditedResume(newContent);
+    setHasUnsavedChanges(newContent !== optimizedResume);
+  };
+
   const handleReset = () => {
     setStep("form");
     setFormData(null);
@@ -270,6 +311,8 @@ export default function Optimize() {
     setOptimizedScores(null);
     setOptimizedResume("");
     setEditedResume("");
+    setSavedResumeId(null);
+    setHasUnsavedChanges(false);
   };
 
   return (
@@ -412,8 +455,28 @@ export default function Optimize() {
                   <CardTitle className="flex items-center gap-2 text-lg font-display">
                     <FileCheck className="h-5 w-5 text-success" />
                     Your Optimized Resume
+                    {hasUnsavedChanges && (
+                      <span className="text-xs font-normal text-warning bg-warning/10 px-2 py-0.5 rounded">
+                        Unsaved changes
+                      </span>
+                    )}
                   </CardTitle>
                   <div className="flex items-center gap-2">
+                    {hasUnsavedChanges && (
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={handleSaveEdits}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        {isSaving ? "Saving..." : "Save Edits"}
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={handleCopy}>
                       <Copy className="h-4 w-4" />
                       Copy
@@ -434,7 +497,7 @@ export default function Optimize() {
                 <EditableResumeContent
                   content={editedResume || optimizedResume}
                   originalContent={optimizedResume}
-                  onContentChange={setEditedResume}
+                  onContentChange={handleContentChange}
                   isEditable={true}
                 />
               </CardContent>
