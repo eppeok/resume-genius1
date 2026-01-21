@@ -1,98 +1,186 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume } from "./parseResume";
 
-// Simple, stable layout - single column, no fixed elements, no flex rows
-// Tighter spacing to prevent orphan pages
+// Professional Template - Navy header with gold accents
+// Single-column layout for stability, elegant typography
 const styles = StyleSheet.create({
   page: {
-    padding: 36,
-    paddingBottom: 40,
+    fontSize: 9,
     fontFamily: "Helvetica",
-    fontSize: 10,
-    lineHeight: 1.35,
-    color: "#1a1a1a",
+    lineHeight: 1.4,
+    backgroundColor: "#ffffff",
   },
-  // Header
-  header: {
-    marginBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333333",
-    paddingBottom: 10,
+  // Navy header band
+  headerBand: {
+    backgroundColor: "#1e3a5f",
+    paddingHorizontal: 36,
+    paddingTop: 28,
+    paddingBottom: 22,
   },
   name: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    marginBottom: 3,
-    color: "#000000",
+    color: "#ffffff",
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
-  role: {
-    fontSize: 11,
-    color: "#444444",
-    marginBottom: 6,
+  title: {
+    fontSize: 10,
+    color: "#d4af37",
+    textTransform: "uppercase",
+    letterSpacing: 2,
+    marginBottom: 8,
   },
-  contactLine: {
-    fontSize: 9,
-    color: "#555555",
+  contactRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+  },
+  contactItem: {
+    fontSize: 8,
+    color: "#e8e8e8",
+  },
+  contactSeparator: {
+    fontSize: 8,
+    color: "#7a8fa3",
+    marginHorizontal: 6,
   },
   contactLink: {
-    color: "#0066cc",
+    fontSize: 8,
+    color: "#d4af37",
     textDecoration: "none",
   },
-  // Sections - use minPresenceAhead to prevent orphan headers
+  // Gold accent line below header
+  accentLine: {
+    height: 3,
+    backgroundColor: "#d4af37",
+  },
+  // Main content area
+  content: {
+    paddingHorizontal: 36,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  // Section styling
   section: {
-    marginBottom: 10,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
+    color: "#1e3a5f",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: "#222222",
-    marginBottom: 6,
-    paddingBottom: 3,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#cccccc",
-  },
-  // Entry (experience/education) - allow wrapping across pages
-  entry: {
-    marginBottom: 8,
-  },
-  entryHeader: {
-    marginBottom: 2,
-  },
-  entryTitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    marginBottom: 1,
-  },
-  entryOrg: {
-    fontSize: 9,
-    color: "#333333",
-    marginBottom: 1,
-  },
-  entryDate: {
-    fontSize: 9,
-    fontStyle: "italic",
-    color: "#666666",
-    marginBottom: 3,
-  },
-  // Bullets - allow wrapping to prevent orphan lines
-  bullet: {
-    fontSize: 9,
-    marginBottom: 2,
-    paddingLeft: 10,
-    lineHeight: 1.3,
+    letterSpacing: 1.5,
+    marginBottom: 10,
+    paddingBottom: 4,
+    borderBottomWidth: 2,
+    borderBottomColor: "#d4af37",
   },
   // Summary
   summaryText: {
     fontSize: 9,
-    lineHeight: 1.4,
-    textAlign: "left",
+    lineHeight: 1.5,
+    color: "#333333",
+    textAlign: "justify",
   },
-  // Skills
-  skillsText: {
+  // Experience entry with left gold border
+  experienceEntry: {
+    marginBottom: 14,
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: "#d4af37",
+  },
+  entryTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#1e3a5f",
+    marginBottom: 2,
+  },
+  entryOrg: {
+    fontSize: 9,
+    color: "#444444",
+    marginBottom: 1,
+  },
+  entryDate: {
+    fontSize: 8,
+    color: "#666666",
+    fontStyle: "italic",
+    marginBottom: 6,
+  },
+  // Bullet points with gold square
+  bulletContainer: {
+    flexDirection: "row",
+    marginBottom: 3,
+    paddingRight: 10,
+  },
+  bulletIcon: {
+    width: 12,
+    fontSize: 6,
+    color: "#d4af37",
+    paddingTop: 2,
+  },
+  bulletText: {
+    flex: 1,
     fontSize: 9,
     lineHeight: 1.4,
+    color: "#333333",
+  },
+  // Skills section
+  skillsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  skillTag: {
+    fontSize: 8,
+    color: "#1e3a5f",
+    backgroundColor: "#f0f4f8",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: "#d4e4f0",
+  },
+  // Education entry
+  educationEntry: {
+    marginBottom: 10,
+  },
+  eduTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#1e3a5f",
+    marginBottom: 1,
+  },
+  eduOrg: {
+    fontSize: 9,
+    color: "#444444",
+    marginBottom: 1,
+  },
+  eduDate: {
+    fontSize: 8,
+    color: "#666666",
+    fontStyle: "italic",
+  },
+  // Certifications
+  certItem: {
+    flexDirection: "row",
+    marginBottom: 4,
+  },
+  certBullet: {
+    width: 12,
+    fontSize: 6,
+    color: "#d4af37",
+    paddingTop: 2,
+  },
+  certText: {
+    flex: 1,
+    fontSize: 9,
+    color: "#333333",
+  },
+  certOrg: {
+    fontSize: 8,
+    color: "#666666",
+    fontStyle: "italic",
   },
 });
 
@@ -110,8 +198,8 @@ interface MinimalTemplateProps {
   contactInfo?: ContactInfo;
 }
 
-// Build contact line string
-function buildContactLine(contactInfo?: ContactInfo): string[] {
+// Build contact parts
+function buildContactParts(contactInfo?: ContactInfo): string[] {
   const parts: string[] = [];
   if (contactInfo?.email) parts.push(contactInfo.email);
   if (contactInfo?.phone) parts.push(contactInfo.phone);
@@ -119,21 +207,21 @@ function buildContactLine(contactInfo?: ContactInfo): string[] {
   return parts;
 }
 
-// Simple bullet component - allow wrapping across pages to prevent orphan lines
+// Bullet component with gold square
 function Bullet({ text }: { text: string }) {
   return (
-    <Text style={styles.bullet}>
-      • {text}
-    </Text>
+    <View style={styles.bulletContainer}>
+      <Text style={styles.bulletIcon}>■</Text>
+      <Text style={styles.bulletText}>{text}</Text>
+    </View>
   );
 }
 
-// Experience/Project entry - allow content to flow across pages
-// Use minPresenceAhead on header to keep title+org+date together
-function EntryBlock({ 
+// Experience entry component
+function ExperienceEntry({ 
   title, 
   organization, 
-  location, 
+  location,
   dateRange, 
   bullets 
 }: { 
@@ -146,14 +234,12 @@ function EntryBlock({
   const orgLine = [organization, location].filter(Boolean).join(" – ");
   
   return (
-    <View style={styles.entry}>
-      {/* Entry header with minPresenceAhead to prevent orphan headers */}
-      <View style={styles.entryHeader} minPresenceAhead={40}>
+    <View style={styles.experienceEntry}>
+      <View minPresenceAhead={40}>
         <Text style={styles.entryTitle}>{title}</Text>
         {orgLine && <Text style={styles.entryOrg}>{orgLine}</Text>}
         {dateRange && <Text style={styles.entryDate}>{dateRange}</Text>}
       </View>
-      {/* Bullets can flow across pages */}
       {bullets.map((bullet, idx) => (
         <Bullet key={idx} text={bullet} />
       ))}
@@ -161,8 +247,8 @@ function EntryBlock({
   );
 }
 
-// Education entry - keep together since it's usually short
-function EducationBlock({ 
+// Education entry component
+function EducationEntry({ 
   degree, 
   school, 
   dateRange 
@@ -172,10 +258,23 @@ function EducationBlock({
   dateRange?: string;
 }) {
   return (
-    <View style={styles.entry} minPresenceAhead={30}>
-      <Text style={styles.entryTitle}>{degree}</Text>
-      {school && <Text style={styles.entryOrg}>{school}</Text>}
-      {dateRange && <Text style={styles.entryDate}>{dateRange}</Text>}
+    <View style={styles.educationEntry} minPresenceAhead={30}>
+      <Text style={styles.eduTitle}>{degree}</Text>
+      {school && <Text style={styles.eduOrg}>{school}</Text>}
+      {dateRange && <Text style={styles.eduDate}>{dateRange}</Text>}
+    </View>
+  );
+}
+
+// Certification item component
+function CertificationItem({ title, organization }: { title: string; organization?: string }) {
+  return (
+    <View style={styles.certItem}>
+      <Text style={styles.certBullet}>■</Text>
+      <Text style={styles.certText}>
+        {title}
+        {organization && <Text style={styles.certOrg}> – {organization}</Text>}
+      </Text>
     </View>
   );
 }
@@ -183,129 +282,135 @@ function EducationBlock({
 export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: MinimalTemplateProps) {
   const resume = parseResume(content);
   
-  // Build contact parts
-  const contactParts = buildContactLine(contactInfo);
+  const contactParts = buildContactParts(contactInfo);
   const linkedinUrl = contactInfo?.linkedinUrl;
-  
-  // Skills as comma-separated
-  const skillsText = resume.skills.join(", ");
-  
-  // Summary as single paragraph
   const summaryText = resume.summary.join(" ").trim();
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
+        {/* Navy Header Band */}
+        <View style={styles.headerBand}>
           <Text style={styles.name}>{fullName || "Your Name"}</Text>
-          {targetRole && <Text style={styles.role}>{targetRole}</Text>}
+          {targetRole && <Text style={styles.title}>{targetRole}</Text>}
           
-          {contactParts.length > 0 && !linkedinUrl && (
-            <Text style={styles.contactLine}>{contactParts.join(" | ")}</Text>
-          )}
-          {contactParts.length > 0 && linkedinUrl && (
-            <Text style={styles.contactLine}>
-              {contactParts.join(" | ")} |{" "}
+          {/* Contact Info Row */}
+          <View style={styles.contactRow}>
+            {contactParts.map((part, idx) => (
+              <View key={idx} style={{ flexDirection: "row" }}>
+                <Text style={styles.contactItem}>{part}</Text>
+                {(idx < contactParts.length - 1 || linkedinUrl) && (
+                  <Text style={styles.contactSeparator}>|</Text>
+                )}
+              </View>
+            ))}
+            {linkedinUrl && (
               <Link src={linkedinUrl} style={styles.contactLink}>LinkedIn</Link>
-            </Text>
-          )}
-          {contactParts.length === 0 && linkedinUrl && (
-            <Text style={styles.contactLine}>
-              <Link src={linkedinUrl} style={styles.contactLink}>LinkedIn</Link>
-            </Text>
-          )}
+            )}
+          </View>
         </View>
 
-        {/* Summary - section title with minPresenceAhead to prevent orphan header */}
-        {summaryText && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={30}>Professional Summary</Text>
-            <Text style={styles.summaryText}>{summaryText}</Text>
-          </View>
-        )}
+        {/* Gold Accent Line */}
+        <View style={styles.accentLine} />
 
-        {/* Experience */}
-        {resume.experience.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={50}>Professional Experience</Text>
-            {resume.experience.map((entry, idx) => (
-              <EntryBlock
-                key={idx}
-                title={entry.title}
-                organization={entry.organization}
-                location={entry.location}
-                dateRange={entry.dateRange}
-                bullets={entry.bullets}
-              />
-            ))}
-          </View>
-        )}
+        {/* Main Content */}
+        <View style={styles.content}>
+          {/* Professional Summary */}
+          {summaryText && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={30}>Professional Summary</Text>
+              <Text style={styles.summaryText}>{summaryText}</Text>
+            </View>
+          )}
 
-        {/* Skills */}
-        {resume.skills.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={20}>Skills</Text>
-            <Text style={styles.skillsText}>{skillsText}</Text>
-          </View>
-        )}
+          {/* Professional Experience */}
+          {resume.experience.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={50}>Professional Experience</Text>
+              {resume.experience.map((entry, idx) => (
+                <ExperienceEntry
+                  key={idx}
+                  title={entry.title}
+                  organization={entry.organization}
+                  location={entry.location}
+                  dateRange={entry.dateRange}
+                  bullets={entry.bullets}
+                />
+              ))}
+            </View>
+          )}
 
-        {/* Education */}
-        {resume.education.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={30}>Education</Text>
-            {resume.education.map((entry, idx) => (
-              <EducationBlock
-                key={idx}
-                degree={entry.title}
-                school={entry.organization}
-                dateRange={entry.dateRange}
-              />
-            ))}
-          </View>
-        )}
+          {/* Core Skills */}
+          {resume.skills.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={20}>Core Skills</Text>
+              <View style={styles.skillsContainer}>
+                {resume.skills.map((skill, idx) => (
+                  <Text key={idx} style={styles.skillTag}>{skill}</Text>
+                ))}
+              </View>
+            </View>
+          )}
 
-        {/* Certifications */}
-        {resume.certifications.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={25}>Certifications</Text>
-            {resume.certifications.map((cert, idx) => (
-              <Text key={idx} style={styles.bullet}>
-                • {cert.title}{cert.organization ? ` – ${cert.organization}` : ""}
-              </Text>
-            ))}
-          </View>
-        )}
+          {/* Education */}
+          {resume.education.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={30}>Education</Text>
+              {resume.education.map((entry, idx) => (
+                <EducationEntry
+                  key={idx}
+                  degree={entry.title}
+                  school={entry.organization}
+                  dateRange={entry.dateRange}
+                />
+              ))}
+            </View>
+          )}
 
-        {/* Projects */}
-        {resume.projects.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={40}>Projects</Text>
-            {resume.projects.map((entry, idx) => (
-              <EntryBlock
-                key={idx}
-                title={entry.title}
-                organization={entry.organization}
-                dateRange={entry.dateRange}
-                bullets={entry.bullets}
-              />
-            ))}
-          </View>
-        )}
+          {/* Certifications */}
+          {resume.certifications.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={25}>Certifications</Text>
+              {resume.certifications.map((cert, idx) => (
+                <CertificationItem
+                  key={idx}
+                  title={cert.title}
+                  organization={cert.organization}
+                />
+              ))}
+            </View>
+          )}
 
-        {/* Other sections */}
-        {resume.other.map((section, sIdx) => (
-          <View key={sIdx} style={styles.section}>
-            <Text style={styles.sectionTitle} minPresenceAhead={25}>{section.title}</Text>
-            {section.content.map((line, lIdx) => (
-              <Text key={lIdx} style={styles.bullet}>
-                • {line}
-              </Text>
-            ))}
-          </View>
-        ))}
+          {/* Projects */}
+          {resume.projects.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={40}>Key Projects</Text>
+              {resume.projects.map((entry, idx) => (
+                <ExperienceEntry
+                  key={idx}
+                  title={entry.title}
+                  organization={entry.organization}
+                  dateRange={entry.dateRange}
+                  bullets={entry.bullets}
+                />
+              ))}
+            </View>
+          )}
+
+          {/* Other Sections */}
+          {resume.other.map((section, sIdx) => (
+            <View key={sIdx} style={styles.section}>
+              <Text style={styles.sectionTitle} minPresenceAhead={25}>{section.title}</Text>
+              {section.content.map((line, lIdx) => (
+                <View key={lIdx} style={styles.certItem}>
+                  <Text style={styles.certBullet}>■</Text>
+                  <Text style={styles.certText}>{line}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
       </Page>
     </Document>
   );
 }
-
