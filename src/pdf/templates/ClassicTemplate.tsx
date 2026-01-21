@@ -1,12 +1,12 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, type ResumeEntry } from "./parseResume";
-import { truncateText, truncateUrl, normalizeWhitespace, prepareBullets, prepareSkills, TEXT_LIMITS } from "./styles";
+import { normalizeWhitespace, prepareBullets, prepareSkills } from "./styles";
 
 // Classic Professional - Elegant serif-inspired design with navy accents
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    paddingBottom: 50,
+    paddingBottom: 60,
     fontSize: 10,
     fontFamily: "Helvetica",
     lineHeight: 1.4,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
   contactItem: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     maxWidth: "48%",
   },
   contactLabel: {
@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Oblique",
     textAlign: "right",
     flexShrink: 0,
-    maxWidth: 90,
   },
   entryLocation: {
     fontSize: 7,
@@ -161,7 +160,6 @@ const styles = StyleSheet.create({
     color: "#1e3a5f",
     borderWidth: 1,
     borderColor: "#d1d9e6",
-    maxWidth: "30%",
   },
   // Education
   educationEntry: {
@@ -220,31 +218,25 @@ function ExperienceEntryComponent({ entry }: { entry: ResumeEntry }) {
   const bullets = prepareBullets(entry.bullets);
   
   return (
-    <View style={styles.experienceEntry} wrap={false}>
+    <View style={styles.experienceEntry} minPresenceAhead={50}>
       <View style={styles.entryHeader}>
         <View style={styles.entryTitleBlock}>
-          <Text style={styles.entryTitle}>
-            {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-          </Text>
+          <Text style={styles.entryTitle}>{entry.title}</Text>
           {entry.organization && (
-            <Text style={styles.entryOrg}>
-              {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
-            </Text>
+            <Text style={styles.entryOrg}>{entry.organization}</Text>
           )}
           {entry.location && (
             <Text style={styles.entryLocation}>{entry.location}</Text>
           )}
         </View>
         {entry.dateRange && (
-          <Text style={styles.entryDate}>
-            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
-          </Text>
+          <Text style={styles.entryDate}>{entry.dateRange}</Text>
         )}
       </View>
       {bullets.length > 0 && (
         <View style={styles.bulletList}>
           {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem}>
+            <View key={idx} style={styles.bulletItem} wrap={false}>
               <Text style={styles.bulletPoint}>•</Text>
               <Text style={styles.bulletText}>{bullet}</Text>
             </View>
@@ -259,29 +251,23 @@ function EducationEntryComponent({ entry }: { entry: ResumeEntry }) {
   const bullets = prepareBullets(entry.bullets);
   
   return (
-    <View style={styles.educationEntry} wrap={false}>
-      <Text style={styles.eduDegree}>
-        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-      </Text>
+    <View style={styles.educationEntry} minPresenceAhead={40}>
+      <Text style={styles.eduDegree}>{entry.title}</Text>
       {entry.organization && (
-        <Text style={styles.eduSchool}>
-          {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
-        </Text>
+        <Text style={styles.eduSchool}>{entry.organization}</Text>
       )}
       <View style={styles.eduDetails}>
         {entry.location && (
           <Text style={styles.eduLocation}>{entry.location}</Text>
         )}
         {entry.dateRange && (
-          <Text style={styles.eduDate}>
-            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
-          </Text>
+          <Text style={styles.eduDate}>{entry.dateRange}</Text>
         )}
       </View>
       {bullets.length > 0 && (
         <View style={styles.bulletList}>
           {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem}>
+            <View key={idx} style={styles.bulletItem} wrap={false}>
               <Text style={styles.bulletPoint}>•</Text>
               <Text style={styles.bulletText}>{bullet}</Text>
             </View>
@@ -309,7 +295,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
               <View style={styles.contactItem}>
                 <Text style={styles.contactLabel}>Email</Text>
                 <Link src={`mailto:${contactInfo.email}`} style={styles.contactLink}>
-                  {truncateText(contactInfo.email, 30)}
+                  {contactInfo.email}
                 </Link>
               </View>
             )}
@@ -332,7 +318,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
                   src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`}
                   style={styles.contactLink}
                 >
-                  {truncateUrl(contactInfo.linkedinUrl, 28)}
+                  {contactInfo.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
                 </Link>
               </View>
             )}
@@ -341,18 +327,16 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
 
         {/* Summary */}
         {resume.summary.length > 0 && (
-          <View style={styles.section}>
+          <View style={styles.section} minPresenceAhead={60}>
             <Text style={styles.sectionTitle}>Professional Summary</Text>
-            <Text style={styles.summaryText}>
-              {truncateText(summaryText, TEXT_LIMITS.summary)}
-            </Text>
+            <Text style={styles.summaryText}>{summaryText}</Text>
           </View>
         )}
 
         {/* Experience */}
         {resume.experience.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Professional Experience</Text>
+            <Text style={styles.sectionTitle} minPresenceAhead={60}>Professional Experience</Text>
             {resume.experience.map((entry, index) => (
               <ExperienceEntryComponent key={index} entry={entry} />
             ))}
@@ -361,7 +345,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
 
         {/* Skills */}
         {skills.length > 0 && (
-          <View style={styles.section}>
+          <View style={styles.section} minPresenceAhead={60}>
             <Text style={styles.sectionTitle}>Core Competencies</Text>
             <View style={styles.skillsContainer}>
               {skills.map((skill, index) => (
@@ -374,7 +358,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
         {/* Education */}
         {resume.education.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Education</Text>
+            <Text style={styles.sectionTitle} minPresenceAhead={60}>Education</Text>
             {resume.education.map((entry, index) => (
               <EducationEntryComponent key={index} entry={entry} />
             ))}
@@ -384,7 +368,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
         {/* Certifications */}
         {resume.certifications.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Certifications</Text>
+            <Text style={styles.sectionTitle} minPresenceAhead={60}>Certifications</Text>
             {resume.certifications.map((entry, index) => (
               <EducationEntryComponent key={index} entry={entry} />
             ))}
@@ -394,7 +378,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
         {/* Projects */}
         {resume.projects.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Projects</Text>
+            <Text style={styles.sectionTitle} minPresenceAhead={60}>Projects</Text>
             {resume.projects.map((entry, index) => (
               <ExperienceEntryComponent key={index} entry={entry} />
             ))}
@@ -404,7 +388,7 @@ export function ClassicTemplate({ content, fullName, targetRole, contactInfo }: 
         {/* Other Sections */}
         {resume.other.map((section, index) => (
           <View key={index} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <Text style={styles.sectionTitle} minPresenceAhead={60}>{section.title}</Text>
             {section.content.map((line, lineIndex) => (
               <Text key={lineIndex} style={styles.otherContent}>{line}</Text>
             ))}

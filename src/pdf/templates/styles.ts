@@ -1,25 +1,9 @@
 /**
  * Shared PDF Template Utilities
  * Provides consistent text handling, wrapping, and layout helpers
+ * 
+ * NO TRUNCATION - All content displays fully and wraps naturally
  */
-
-// Maximum character lengths to prevent overflow
-export const TEXT_LIMITS = {
-  bulletPoint: 200,      // Max chars per bullet point
-  skillName: 35,         // Max chars per skill
-  summary: 1500,         // Max chars for summary
-  organizationName: 60,  // Max chars for company/school name
-  jobTitle: 50,          // Max chars for job title
-  dateRange: 25,         // Max chars for date
-};
-
-/**
- * Truncates text to a maximum length with ellipsis
- */
-export function truncateText(text: string, maxLength: number): string {
-  if (!text || text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3).trim() + '...';
-}
 
 /**
  * Normalizes whitespace in text - removes double spaces and trims
@@ -30,31 +14,23 @@ export function normalizeWhitespace(text: string): string {
 }
 
 /**
- * Truncates a URL for display while keeping it recognizable
+ * Prepares bullet points for PDF - cleans whitespace only (no truncation)
  */
-export function truncateUrl(url: string, maxLength: number = 35): string {
-  if (!url) return '';
-  // Remove protocol and www
-  let display = url.replace(/^https?:\/\/(www\.)?/, '');
-  // Remove trailing slash
-  display = display.replace(/\/$/, '');
-  
-  if (display.length <= maxLength) return display;
-  
-  // Keep domain and truncate path
-  const parts = display.split('/');
-  if (parts.length > 1) {
-    const domain = parts[0];
-    if (domain.length < maxLength - 5) {
-      return domain + '/...';
-    }
-  }
-  
-  return display.substring(0, maxLength - 3) + '...';
+export function prepareBullets(bullets: string[]): string[] {
+  return bullets.map(bullet => normalizeWhitespace(bullet));
 }
 
 /**
- * Common flex row styles that prevent overflow
+ * Prepares skills for PDF - cleans and limits count only (no truncation)
+ */
+export function prepareSkills(skills: string[], maxCount: number = 15): string[] {
+  return skills
+    .slice(0, maxCount)
+    .map(skill => normalizeWhitespace(skill));
+}
+
+/**
+ * Common flex row styles that allow proper wrapping
  */
 export const flexRowSafe = {
   flexDirection: 'row' as const,
@@ -63,7 +39,7 @@ export const flexRowSafe = {
 };
 
 /**
- * Text styles that ensure proper wrapping
+ * Text styles that ensure proper wrapping without truncation
  */
 export const textWrapSafe = {
   flexShrink: 1,
@@ -79,20 +55,16 @@ export const fixedWidthElement = {
 };
 
 /**
- * Prepares bullet points for PDF - cleans and truncates
+ * Entry container styles that keep entries together when possible
+ * Uses minPresenceAhead to ensure at least some content fits before page break
  */
-export function prepareBullets(bullets: string[], maxLength: number = TEXT_LIMITS.bulletPoint): string[] {
-  return bullets.map(bullet => {
-    const cleaned = normalizeWhitespace(bullet);
-    return truncateText(cleaned, maxLength);
-  });
-}
+export const entryWrapStyles = {
+  minPresenceAhead: 50,
+};
 
 /**
- * Prepares skills for PDF - cleans, truncates, and limits count
+ * Section title styles to prevent orphaned headers
  */
-export function prepareSkills(skills: string[], maxCount: number = 15, maxLength: number = TEXT_LIMITS.skillName): string[] {
-  return skills
-    .slice(0, maxCount)
-    .map(skill => truncateText(normalizeWhitespace(skill), maxLength));
-}
+export const sectionTitleWrapStyles = {
+  minPresenceAhead: 80,
+};

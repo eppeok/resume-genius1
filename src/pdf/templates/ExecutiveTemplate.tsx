@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, type ResumeEntry } from "./parseResume";
-import { truncateText, truncateUrl, normalizeWhitespace, prepareBullets, prepareSkills, TEXT_LIMITS } from "./styles";
+import { normalizeWhitespace, prepareBullets, prepareSkills } from "./styles";
 
 // Executive - Premium design with navy header, gold accents, sophisticated layout
 const navyColor = "#0f172a";
@@ -13,8 +13,9 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     lineHeight: 1.4,
     backgroundColor: "#ffffff",
+    paddingBottom: 60,
   },
-  // Premium header band
+  // Premium header band - fixed to repeat on pages
   headerBand: {
     backgroundColor: navyColor,
     paddingHorizontal: 35,
@@ -48,7 +49,6 @@ const styles = StyleSheet.create({
   contactBlock: {
     alignItems: "flex-end",
     flexShrink: 0,
-    maxWidth: "45%",
   },
   contactRow: {
     flexDirection: "row",
@@ -68,14 +68,12 @@ const styles = StyleSheet.create({
   contactValue: {
     fontSize: 8,
     color: "#e2e8f0",
-    maxWidth: 120,
     textAlign: "left",
   },
   contactLink: {
     fontSize: 8,
     color: "#e2e8f0",
     textDecoration: "none",
-    maxWidth: 120,
     textAlign: "left",
   },
   // Gold accent line
@@ -87,7 +85,7 @@ const styles = StyleSheet.create({
   body: {
     paddingHorizontal: 35,
     paddingTop: 20,
-    paddingBottom: 50,
+    paddingBottom: 20,
   },
   // Full width summary
   summarySection: {
@@ -110,7 +108,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: "justify",
   },
-  // Two column layout
+  // Two column layout - allow wrapping
   twoColumn: {
     flexDirection: "row",
     gap: 25,
@@ -186,7 +184,6 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Oblique",
     textAlign: "right",
     flexShrink: 0,
-    maxWidth: 75,
   },
   bulletList: {
     marginTop: 5,
@@ -224,7 +221,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     borderWidth: 1,
     borderColor: goldLight,
-    maxWidth: "48%",
   },
   // Education
   educationEntry: {
@@ -262,14 +258,13 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     marginTop: 1,
   },
-  // Footer
+  // Footer - flows naturally at bottom
   footer: {
-    position: "absolute",
-    bottom: 20,
-    left: 35,
-    right: 35,
+    marginTop: 20,
+    paddingTop: 15,
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 35,
   },
   footerLine: {
     flex: 1,
@@ -309,31 +304,25 @@ function ExperienceEntry({ entry }: { entry: ResumeEntry }) {
   const bullets = prepareBullets(entry.bullets);
   
   return (
-    <View style={styles.experienceEntry} wrap={false}>
+    <View style={styles.experienceEntry} minPresenceAhead={50}>
       <View style={styles.entryHeader}>
         <View style={styles.entryTitleBlock}>
-          <Text style={styles.entryTitle}>
-            {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-          </Text>
+          <Text style={styles.entryTitle}>{entry.title}</Text>
           {entry.organization && (
-            <Text style={styles.entryOrg}>
-              {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
-            </Text>
+            <Text style={styles.entryOrg}>{entry.organization}</Text>
           )}
           {entry.location && (
             <Text style={styles.entryLocation}>{entry.location}</Text>
           )}
         </View>
         {entry.dateRange && (
-          <Text style={styles.entryDate}>
-            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
-          </Text>
+          <Text style={styles.entryDate}>{entry.dateRange}</Text>
         )}
       </View>
       {bullets.length > 0 && (
         <View style={styles.bulletList}>
           {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem}>
+            <View key={idx} style={styles.bulletItem} wrap={false}>
               <Text style={styles.bulletPoint}>■</Text>
               <Text style={styles.bulletText}>{bullet}</Text>
             </View>
@@ -346,19 +335,13 @@ function ExperienceEntry({ entry }: { entry: ResumeEntry }) {
 
 function EducationEntryComponent({ entry }: { entry: ResumeEntry }) {
   return (
-    <View style={styles.educationEntry} wrap={false}>
-      <Text style={styles.eduDegree}>
-        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-      </Text>
+    <View style={styles.educationEntry} minPresenceAhead={40}>
+      <Text style={styles.eduDegree}>{entry.title}</Text>
       {entry.organization && (
-        <Text style={styles.eduSchool}>
-          {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
-        </Text>
+        <Text style={styles.eduSchool}>{entry.organization}</Text>
       )}
       {entry.dateRange && (
-        <Text style={styles.eduDate}>
-          {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
-        </Text>
+        <Text style={styles.eduDate}>{entry.dateRange}</Text>
       )}
     </View>
   );
@@ -366,14 +349,10 @@ function EducationEntryComponent({ entry }: { entry: ResumeEntry }) {
 
 function CertificationEntry({ entry }: { entry: ResumeEntry }) {
   return (
-    <View style={styles.certEntry} wrap={false}>
-      <Text style={styles.certName}>
-        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-      </Text>
+    <View style={styles.certEntry} minPresenceAhead={30}>
+      <Text style={styles.certName}>{entry.title}</Text>
       {entry.organization && (
-        <Text style={styles.certOrg}>
-          {truncateText(entry.organization, 40)}
-        </Text>
+        <Text style={styles.certOrg}>{entry.organization}</Text>
       )}
     </View>
   );
@@ -387,23 +366,19 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Premium Header Band */}
-        <View style={styles.headerBand}>
+        {/* Premium Header Band - fixed to repeat on pages */}
+        <View style={styles.headerBand} fixed>
           <View style={styles.headerContent}>
             <View style={styles.nameBlock}>
-              <Text style={styles.name}>
-                {truncateText(fullName || "Your Name", 35)}
-              </Text>
-              <Text style={styles.title}>
-                {truncateText(targetRole || "Executive Professional", 40)}
-              </Text>
+              <Text style={styles.name}>{fullName || "Your Name"}</Text>
+              <Text style={styles.title}>{targetRole || "Executive Professional"}</Text>
             </View>
             <View style={styles.contactBlock}>
               {contactInfo?.email && (
                 <View style={styles.contactRow}>
                   <Text style={styles.contactLabel}>Email</Text>
                   <Link src={`mailto:${contactInfo.email}`} style={styles.contactLink}>
-                    {truncateText(contactInfo.email, 28)}
+                    {contactInfo.email}
                   </Link>
                 </View>
               )}
@@ -416,9 +391,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               {contactInfo?.location && (
                 <View style={styles.contactRow}>
                   <Text style={styles.contactLabel}>Location</Text>
-                  <Text style={styles.contactValue}>
-                    {truncateText(contactInfo.location, 25)}
-                  </Text>
+                  <Text style={styles.contactValue}>{contactInfo.location}</Text>
                 </View>
               )}
               {contactInfo?.linkedinUrl && (
@@ -428,7 +401,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
                     src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} 
                     style={styles.contactLink}
                   >
-                    {truncateUrl(contactInfo.linkedinUrl, 25)}
+                    {contactInfo.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
                   </Link>
                 </View>
               )}
@@ -437,17 +410,15 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
         </View>
         
         {/* Gold Accent Line */}
-        <View style={styles.goldAccent} />
+        <View style={styles.goldAccent} fixed />
 
         {/* Body */}
         <View style={styles.body}>
           {/* Full-width Executive Summary */}
           {resume.summary.length > 0 && (
-            <View style={styles.summarySection}>
+            <View style={styles.summarySection} minPresenceAhead={60}>
               <Text style={styles.summaryLabel}>Executive Summary</Text>
-              <Text style={styles.summaryText}>
-                {truncateText(summaryText, TEXT_LIMITS.summary)}
-              </Text>
+              <Text style={styles.summaryText}>{summaryText}</Text>
             </View>
           )}
 
@@ -457,7 +428,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
             <View style={styles.leftColumn}>
               {resume.experience.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Professional Experience</Text>
+                  <Text style={styles.sectionTitle} minPresenceAhead={60}>Professional Experience</Text>
                   {resume.experience.map((entry, index) => (
                     <ExperienceEntry key={index} entry={entry} />
                   ))}
@@ -466,7 +437,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               
               {resume.projects.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Key Projects</Text>
+                  <Text style={styles.sectionTitle} minPresenceAhead={60}>Key Projects</Text>
                   {resume.projects.map((entry, index) => (
                     <ExperienceEntry key={index} entry={entry} />
                   ))}
@@ -476,7 +447,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               {/* Other sections */}
               {resume.other.map((section, index) => (
                 <View key={index} style={styles.section}>
-                  <Text style={styles.sectionTitle}>{section.title}</Text>
+                  <Text style={styles.sectionTitle} minPresenceAhead={60}>{section.title}</Text>
                   {section.content.map((line, lineIndex) => (
                     <Text key={lineIndex} style={styles.otherContent}>{line}</Text>
                   ))}
@@ -488,7 +459,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
             <View style={styles.rightColumn}>
               {skills.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.rightSectionTitle}>Core Competencies</Text>
+                  <Text style={styles.rightSectionTitle} minPresenceAhead={60}>Core Competencies</Text>
                   <View style={styles.skillsGrid}>
                     {skills.map((skill, index) => (
                       <Text key={index} style={styles.skillTag}>{skill}</Text>
@@ -499,7 +470,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               
               {resume.education.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.rightSectionTitle}>Education</Text>
+                  <Text style={styles.rightSectionTitle} minPresenceAhead={60}>Education</Text>
                   {resume.education.map((entry, index) => (
                     <EducationEntryComponent key={index} entry={entry} />
                   ))}
@@ -508,7 +479,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
               
               {resume.certifications.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.rightSectionTitle}>Certifications</Text>
+                  <Text style={styles.rightSectionTitle} minPresenceAhead={60}>Certifications</Text>
                   {resume.certifications.map((entry, index) => (
                     <CertificationEntry key={index} entry={entry} />
                   ))}
@@ -518,7 +489,7 @@ export function ExecutiveTemplate({ content, fullName, targetRole, contactInfo }
           </View>
         </View>
 
-        {/* Footer */}
+        {/* Footer - flows naturally */}
         <View style={styles.footer}>
           <View style={styles.footerLine} />
           <Text style={styles.footerText}>References Available Upon Request</Text>
