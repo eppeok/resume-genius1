@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Link } from "@react-pdf/renderer";
 import { parseResume, getInitials, type ResumeEntry } from "./parseResume";
-import { truncateText, truncateUrl, normalizeWhitespace, prepareBullets, prepareSkills, TEXT_LIMITS } from "./styles";
+import { normalizeWhitespace, prepareBullets, prepareSkills } from "./styles";
 
 // Modern Clean - Two-column layout with teal accents and experience cards
 const primaryColor = "#0d9488";
@@ -14,7 +14,7 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     lineHeight: 1.4,
   },
-  // Sidebar
+  // Sidebar - fixed to span all pages
   sidebar: {
     width: "32%",
     backgroundColor: sidebarBg,
@@ -128,13 +128,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 5,
     borderRadius: 2,
-    maxWidth: "95%",
   },
   // Main content
   main: {
     width: "68%",
     padding: 25,
     paddingTop: 30,
+    paddingBottom: 50,
     backgroundColor: "#ffffff",
   },
   mainSection: {
@@ -201,7 +201,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     borderRadius: 2,
     flexShrink: 0,
-    maxWidth: 75,
   },
   bulletList: {
     marginTop: 4,
@@ -300,31 +299,25 @@ function ExperienceCard({ entry }: { entry: ResumeEntry }) {
   const bullets = prepareBullets(entry.bullets);
   
   return (
-    <View style={styles.experienceCard} wrap={false}>
+    <View style={styles.experienceCard} minPresenceAhead={50}>
       <View style={styles.cardHeader}>
         <View style={styles.cardTitleBlock}>
-          <Text style={styles.cardTitle}>
-            {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-          </Text>
+          <Text style={styles.cardTitle}>{entry.title}</Text>
           {entry.organization && (
-            <Text style={styles.cardOrg}>
-              {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
-            </Text>
+            <Text style={styles.cardOrg}>{entry.organization}</Text>
           )}
           {entry.location && (
             <Text style={styles.cardLocation}>{entry.location}</Text>
           )}
         </View>
         {entry.dateRange && (
-          <Text style={styles.cardDate}>
-            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
-          </Text>
+          <Text style={styles.cardDate}>{entry.dateRange}</Text>
         )}
       </View>
       {bullets.length > 0 && (
         <View style={styles.bulletList}>
           {bullets.map((bullet, idx) => (
-            <View key={idx} style={styles.bulletItem}>
+            <View key={idx} style={styles.bulletItem} wrap={false}>
               <Text style={styles.bulletPoint}>▸</Text>
               <Text style={styles.bulletText}>{bullet}</Text>
             </View>
@@ -337,21 +330,15 @@ function ExperienceCard({ entry }: { entry: ResumeEntry }) {
 
 function EducationEntry({ entry }: { entry: ResumeEntry }) {
   return (
-    <View style={styles.educationEntry} wrap={false}>
-      <Text style={styles.eduDegree}>
-        {truncateText(entry.title, TEXT_LIMITS.jobTitle)}
-      </Text>
+    <View style={styles.educationEntry} minPresenceAhead={40}>
+      <Text style={styles.eduDegree}>{entry.title}</Text>
       {entry.organization && (
-        <Text style={styles.eduSchool}>
-          {truncateText(entry.organization, TEXT_LIMITS.organizationName)}
-        </Text>
+        <Text style={styles.eduSchool}>{entry.organization}</Text>
       )}
       <View style={styles.eduMeta}>
         {entry.location && <Text style={styles.eduLocation}>{entry.location}</Text>}
         {entry.dateRange && (
-          <Text style={styles.eduDate}>
-            {truncateText(entry.dateRange, TEXT_LIMITS.dateRange)}
-          </Text>
+          <Text style={styles.eduDate}>{entry.dateRange}</Text>
         )}
       </View>
     </View>
@@ -361,26 +348,22 @@ function EducationEntry({ entry }: { entry: ResumeEntry }) {
 export function ModernTemplate({ content, fullName, targetRole, contactInfo }: ModernTemplateProps) {
   const resume = parseResume(content);
   const initials = getInitials(fullName || "YN");
-  const primarySkills = prepareSkills(resume.skills.slice(0, 5), 5, 25);
-  const secondarySkills = prepareSkills(resume.skills.slice(5, 10), 5, 20);
+  const primarySkills = prepareSkills(resume.skills.slice(0, 5), 5);
+  const secondarySkills = prepareSkills(resume.skills.slice(5, 10), 5);
   const summaryText = normalizeWhitespace(resume.summary.join(' '));
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Sidebar */}
-        <View style={styles.sidebar}>
+        {/* Sidebar - fixed to span pages */}
+        <View style={styles.sidebar} fixed>
           {/* Avatar with initials */}
           <View style={styles.avatarCircle}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
           
-          <Text style={styles.sidebarName}>
-            {truncateText(fullName || "Your Name", 30)}
-          </Text>
-          <Text style={styles.sidebarTitle}>
-            {truncateText(targetRole || "Professional Title", 35)}
-          </Text>
+          <Text style={styles.sidebarName}>{fullName || "Your Name"}</Text>
+          <Text style={styles.sidebarTitle}>{targetRole || "Professional Title"}</Text>
           
           {/* Contact Info */}
           <View style={styles.sidebarSection}>
@@ -389,7 +372,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
               <View style={styles.contactItem}>
                 <Text style={styles.contactIcon}>@</Text>
                 <Link src={`mailto:${contactInfo.email}`} style={styles.contactLink}>
-                  {truncateText(contactInfo.email, 25)}
+                  {contactInfo.email}
                 </Link>
               </View>
             )}
@@ -402,9 +385,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
             {contactInfo?.location && (
               <View style={styles.contactItem}>
                 <Text style={styles.contactIcon}>L</Text>
-                <Text style={styles.contactText}>
-                  {truncateText(contactInfo.location, 25)}
-                </Text>
+                <Text style={styles.contactText}>{contactInfo.location}</Text>
               </View>
             )}
             {contactInfo?.linkedinUrl && (
@@ -414,7 +395,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
                   src={contactInfo.linkedinUrl.startsWith('http') ? contactInfo.linkedinUrl : `https://${contactInfo.linkedinUrl}`} 
                   style={styles.contactLink}
                 >
-                  {truncateUrl(contactInfo.linkedinUrl, 22)}
+                  {contactInfo.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}
                 </Link>
               </View>
             )}
@@ -448,18 +429,12 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
               <Text style={styles.sidebarSectionTitle}>Education</Text>
               {resume.education.map((edu, index) => (
                 <View key={index} style={styles.sidebarEduEntry}>
-                  <Text style={styles.sidebarEduTitle}>
-                    {truncateText(edu.title, 35)}
-                  </Text>
+                  <Text style={styles.sidebarEduTitle}>{edu.title}</Text>
                   {edu.organization && (
-                    <Text style={styles.sidebarEduOrg}>
-                      {truncateText(edu.organization, 30)}
-                    </Text>
+                    <Text style={styles.sidebarEduOrg}>{edu.organization}</Text>
                   )}
                   {edu.dateRange && (
-                    <Text style={styles.sidebarEduDate}>
-                      {truncateText(edu.dateRange, 20)}
-                    </Text>
+                    <Text style={styles.sidebarEduDate}>{edu.dateRange}</Text>
                   )}
                 </View>
               ))}
@@ -471,18 +446,16 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
         <View style={styles.main}>
           {/* Summary */}
           {resume.summary.length > 0 && (
-            <View style={styles.mainSection}>
+            <View style={styles.mainSection} minPresenceAhead={60}>
               <Text style={styles.mainSectionTitle}>About Me</Text>
-              <Text style={styles.summaryText}>
-                {truncateText(summaryText, TEXT_LIMITS.summary)}
-              </Text>
+              <Text style={styles.summaryText}>{summaryText}</Text>
             </View>
           )}
 
           {/* Experience */}
           {resume.experience.length > 0 && (
             <View style={styles.mainSection}>
-              <Text style={styles.mainSectionTitle}>Experience</Text>
+              <Text style={styles.mainSectionTitle} minPresenceAhead={60}>Experience</Text>
               {resume.experience.map((entry, index) => (
                 <ExperienceCard key={index} entry={entry} />
               ))}
@@ -492,7 +465,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
           {/* Certifications */}
           {resume.certifications.length > 0 && (
             <View style={styles.mainSection}>
-              <Text style={styles.mainSectionTitle}>Certifications</Text>
+              <Text style={styles.mainSectionTitle} minPresenceAhead={60}>Certifications</Text>
               {resume.certifications.map((entry, index) => (
                 <EducationEntry key={index} entry={entry} />
               ))}
@@ -502,7 +475,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
           {/* Projects */}
           {resume.projects.length > 0 && (
             <View style={styles.mainSection}>
-              <Text style={styles.mainSectionTitle}>Projects</Text>
+              <Text style={styles.mainSectionTitle} minPresenceAhead={60}>Projects</Text>
               {resume.projects.map((entry, index) => (
                 <ExperienceCard key={index} entry={entry} />
               ))}
@@ -512,7 +485,7 @@ export function ModernTemplate({ content, fullName, targetRole, contactInfo }: M
           {/* Other Sections */}
           {resume.other.map((section, index) => (
             <View key={index} style={styles.mainSection}>
-              <Text style={styles.mainSectionTitle}>{section.title}</Text>
+              <Text style={styles.mainSectionTitle} minPresenceAhead={60}>{section.title}</Text>
               {section.content.map((line, lineIndex) => (
                 <Text key={lineIndex} style={styles.otherContent}>{line}</Text>
               ))}
