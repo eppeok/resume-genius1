@@ -1,9 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
-import { ClassicTemplate } from "./templates/ClassicTemplate";
-import { ModernTemplate } from "./templates/ModernTemplate";
-import { ExecutiveTemplate } from "./templates/ExecutiveTemplate";
+import { MinimalTemplate } from "./templates/MinimalTemplate";
 
-export type TemplateName = "classic" | "modern" | "executive";
+export type TemplateName = "minimal";
 
 export interface ContactInfo {
   email?: string;
@@ -21,13 +19,8 @@ interface GeneratePDFOptions {
 }
 
 export async function generatePDF({ content, fullName, targetRole, template, contactInfo }: GeneratePDFOptions): Promise<Blob> {
-  const templateComponents = {
-    classic: ClassicTemplate,
-    modern: ModernTemplate,
-    executive: ExecutiveTemplate,
-  };
-
-  const TemplateComponent = templateComponents[template];
+  // Single minimal template - ignore template parameter for now
+  const TemplateComponent = MinimalTemplate;
   
   const doc = <TemplateComponent content={content} fullName={fullName} targetRole={targetRole} contactInfo={contactInfo} />;
   const blob = await pdf(doc).toBlob();
