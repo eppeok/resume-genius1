@@ -143,12 +143,14 @@ function categorizeSection(title: string): 'summary' | 'experience' | 'education
 }
 
 // Sanitize content for PDF - remove invisible chars, normalize horizontal whitespace only
+// Uses non-breaking hyphen (U+2011) to prevent text from breaking mid-word on hyphenated terms
 function sanitizeForPdf(text: string): string {
   return text
     // Remove zero-width characters
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
-    // Normalize various dash types to standard hyphen
-    .replace(/[–—―]/g, '-')
+    // Convert all dashes/hyphens to non-breaking hyphen to prevent mid-word line breaks
+    // This fixes issues with "end-to-end", "go-to-market", "cross-functional" etc.
+    .replace(/[–—―-]/g, '\u2011')
     // Normalize horizontal whitespace only (preserve newlines for parsing)
     .replace(/[^\S\n]+/g, ' ')
     .trim();
