@@ -35,7 +35,6 @@ const JOB_ENTRY_PATTERNS = [
   /^###?\s*(.+?)\s+at\s+(.+?)\s*\((.+)\)$/,    // ### Title at Company (Date)
   /^\*\*(.+?)\*\*\s*\|\s*(.+?)\s*\|\s*(.+)$/,  // **Title** | Company | Date
   /^\*\*(.+?)\*\*\s+at\s+(.+?)\s*\((.+)\)$/,   // **Title** at Company (Date)
-  /^(.+?)\s*[-–—]\s*(.+?)\s*[-–—]\s*(.+)$/,    // Title - Company - Date
 ];
 
 // Match education formats
