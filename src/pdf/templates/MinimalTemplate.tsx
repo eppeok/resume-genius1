@@ -9,13 +9,19 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     lineHeight: 1.4,
     backgroundColor: "#ffffff",
+    // Standard 1-inch margins on ALL pages (72pt = 1 inch)
+    paddingTop: 72,
+    paddingBottom: 72,
+    paddingLeft: 72,
+    paddingRight: 72,
   },
   // Navy header band
   headerBand: {
     backgroundColor: "#1e3a5f",
-    paddingHorizontal: 36,
-    paddingTop: 28,
-    paddingBottom: 22,
+    // Keep header *inside* the page margins (no extra horizontal padding)
+    paddingHorizontal: 0,
+    paddingTop: 18,
+    paddingBottom: 14,
   },
   name: {
     fontSize: 22,
@@ -57,9 +63,10 @@ const styles = StyleSheet.create({
   },
   // Main content area
   content: {
-    paddingHorizontal: 36,
-    paddingTop: 20,
-    paddingBottom: 40,
+    // Page-level padding handles margins; keep just a small separation from header
+    paddingHorizontal: 0,
+    paddingTop: 18,
+    paddingBottom: 0,
   },
   // Section styling
   section: {
