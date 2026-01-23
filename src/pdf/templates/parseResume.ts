@@ -52,6 +52,10 @@ function extractDate(text: string): string | undefined {
 }
 
 function parseJobEntry(line: string, strictMode: boolean = false): ResumeEntry | null {
+  const MAX_TITLE_LENGTH = 100;
+  const MAX_ORG_LENGTH = 80;
+  const MAX_LOCATION_LENGTH = 50;
+
   // In strict mode, only match explicit patterns (### headers or pipe-separated)
   for (const pattern of JOB_ENTRY_PATTERNS) {
     const match = line.match(pattern);
@@ -60,38 +64,38 @@ function parseJobEntry(line: string, strictMode: boolean = false): ResumeEntry |
       // Check if there's a location in the org field (e.g., "Company, City")
       const orgParts = org.split(/,\s*/);
       return {
-        title: cleanText(title),
-        organization: cleanText(orgParts[0]),
-        location: orgParts[1] ? cleanText(orgParts[1]) : undefined,
+        title: truncateText(cleanText(title), MAX_TITLE_LENGTH),
+        organization: truncateText(cleanText(orgParts[0]), MAX_ORG_LENGTH),
+        location: orgParts[1] ? truncateText(cleanText(orgParts[1]), MAX_LOCATION_LENGTH) : undefined,
         dateRange: cleanText(date),
         bullets: [],
       };
     }
   }
-  
+
   // In strict mode, don't use the bold fallback - it causes misclassification
   if (strictMode) {
     return null;
   }
-  
+
   // Fallback: detect bold text as potential job title ONLY if it also contains a date
   const boldMatch = line.match(/^\*\*(.+?)\*\*/);
   if (boldMatch) {
     const rest = line.replace(/^\*\*.+?\*\*\s*/, '');
     const dateMatch = extractDate(rest);
-    
+
     // Only treat as entry if there's a date present (otherwise it's just bold text in content)
     if (dateMatch) {
       const orgMatch = rest.replace(dateMatch || '', '').replace(/[|,\-–—]/g, ' ').trim();
       return {
-        title: cleanText(boldMatch[1]),
-        organization: cleanText(orgMatch) || '',
+        title: truncateText(cleanText(boldMatch[1]), MAX_TITLE_LENGTH),
+        organization: truncateText(cleanText(orgMatch), MAX_ORG_LENGTH) || '',
         dateRange: dateMatch,
         bullets: [],
       };
     }
   }
-  
+
   return null;
 }
 
@@ -106,6 +110,12 @@ function cleanText(text: string): string {
     .trim();
 }
 
+// Truncate text with ellipsis if it exceeds max length
+function truncateText(text: string, maxLength: number): string {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength - 3) + '...';
+}
+
 function isBulletPoint(line: string): boolean {
   return /^[-•*]\s+/.test(line.trim()) || /^\d+\.\s+/.test(line.trim());
 }
@@ -113,7 +123,13 @@ function isBulletPoint(line: string): boolean {
 function extractBulletText(line: string): string {
   const text = line.replace(/^[-•*]\s+/, '').replace(/^\d+\.\s+/, '').trim();
   // Normalize whitespace within bullet text
-  return text.replace(/\s+/g, ' ');
+  const normalized = text.replace(/\s+/g, ' ');
+  // Limit bullet length to prevent formatting issues (approximately 3 lines at 10pt)
+  const MAX_BULLET_LENGTH = 350;
+  if (normalized.length > MAX_BULLET_LENGTH) {
+    return normalized.substring(0, MAX_BULLET_LENGTH - 3) + '...';
+  }
+  return normalized;
 }
 
 function categorizeSection(title: string): 'summary' | 'experience' | 'education' | 'skills' | 'certifications' | 'projects' | 'other' {
@@ -334,10 +350,17 @@ export function parseResume(markdown: string): ParsedResume {
   if (currentSection === 'other' && currentSectionTitle && currentOtherContent.length) {
     result.other.push({ title: currentSectionTitle, content: currentOtherContent });
   }
-  
+
   // Limit skills to prevent overflow
   result.skills = result.skills.slice(0, 20);
-  
+
+  // Limit summary length to prevent it from dominating the page
+  const summaryJoined = result.summary.join(' ');
+  const MAX_SUMMARY_LENGTH = 600;
+  if (summaryJoined.length > MAX_SUMMARY_LENGTH) {
+    result.summary = [truncateText(summaryJoined, MAX_SUMMARY_LENGTH)];
+  }
+
   return result;
 }
 
