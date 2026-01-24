@@ -9,6 +9,8 @@ import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 import { EditableResumeContent } from "@/components/EditableResumeContent";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { generatePDF, downloadPDF } from "@/pdf/PDFGenerator";
+import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Calendar, Briefcase, Loader2, FileCheck, Copy, Download, Save } from "lucide-react";
 import { format } from "date-fns";
 
@@ -38,10 +40,12 @@ export default function ResumeDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [editedContent, setEditedContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -99,20 +103,39 @@ export default function ResumeDetail() {
     });
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([editedContent], { type: "text/markdown" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${resume?.full_name || "resume"}-optimized.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({
-      title: "Downloaded!",
-      description: "Resume saved as markdown file",
-    });
+  const handleDownloadPDF = async () => {
+    if (!resume) return;
+    
+    setIsDownloading(true);
+    try {
+      const blob = await generatePDF({
+        content: editedContent,
+        fullName: resume.full_name || "",
+        targetRole: resume.target_role || "",
+        template: "minimal",
+        contactInfo: {
+          email: profile?.email,
+          phone: profile?.phone || undefined,
+          location: profile?.location || undefined,
+          linkedinUrl: profile?.linkedin_url || undefined,
+        },
+      });
+      
+      downloadPDF(blob, `${resume.full_name || "resume"}.pdf`);
+      toast({
+        title: "Downloaded!",
+        description: "Your PDF resume has been downloaded",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const hasChanges = resume?.optimized_resume !== editedContent;
@@ -244,9 +267,14 @@ export default function ResumeDetail() {
                     <Copy className="h-4 w-4" />
                     Copy
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleDownload}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleDownloadPDF}
+                    disabled={isDownloading}
+                  >
                     <Download className="h-4 w-4" />
-                    Download
+                    {isDownloading ? "Generating..." : "Download PDF"}
                   </Button>
                 </div>
               </div>
