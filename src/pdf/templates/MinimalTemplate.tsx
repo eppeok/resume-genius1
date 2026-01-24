@@ -210,6 +210,16 @@ interface MinimalTemplateProps {
   contactInfo?: ContactInfo;
 }
 
+// Convert string to title case
+function toTitleCase(str: string): string {
+  if (!str) return str;
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 // Build contact parts
 function buildContactParts(contactInfo?: ContactInfo): string[] {
   const parts: string[] = [];
@@ -303,7 +313,7 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
       <Page size="A4" style={styles.page}>
         {/* Navy Header Band */}
         <View style={styles.headerBand}>
-          <Text style={styles.name}>{fullName || "Your Name"}</Text>
+          <Text style={styles.name}>{toTitleCase(fullName) || "Your Name"}</Text>
           {targetRole && <Text style={styles.title}>{targetRole}</Text>}
           
           {/* Contact Info Row */}
@@ -335,11 +345,24 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
             </View>
           )}
 
-          {/* Professional Experience */}
+          {/* Professional Experience - title stays with first entry */}
           {resume.experience.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle} minPresenceAhead={80}>Professional Experience</Text>
-              {resume.experience.map((entry, idx) => (
+              {/* Wrap title + first entry together to prevent orphaned heading */}
+              <View minPresenceAhead={120}>
+                <Text style={styles.sectionTitle}>Professional Experience</Text>
+                {resume.experience.length > 0 && (
+                  <ExperienceEntry
+                    title={resume.experience[0].title}
+                    organization={resume.experience[0].organization}
+                    location={resume.experience[0].location}
+                    dateRange={resume.experience[0].dateRange}
+                    bullets={resume.experience[0].bullets}
+                  />
+                )}
+              </View>
+              {/* Remaining entries can wrap naturally */}
+              {resume.experience.slice(1).map((entry, idx) => (
                 <ExperienceEntry
                   key={idx}
                   title={entry.title}
@@ -352,10 +375,10 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
             </View>
           )}
 
-          {/* Core Skills */}
+          {/* Core Skills - keep entire section together */}
           {resume.skills.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle} minPresenceAhead={50}>Core Skills</Text>
+            <View style={styles.section} wrap={false} minPresenceAhead={80}>
+              <Text style={styles.sectionTitle}>Core Skills</Text>
               <View style={styles.skillsContainer}>
                 {resume.skills.map((skill, idx) => (
                   <Text key={idx} style={styles.skillTag}>{skill}</Text>
@@ -364,10 +387,10 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
             </View>
           )}
 
-          {/* Education */}
+          {/* Education - keep entire section together */}
           {resume.education.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle} minPresenceAhead={50}>Education</Text>
+            <View style={styles.section} wrap={false} minPresenceAhead={100}>
+              <Text style={styles.sectionTitle}>Education</Text>
               {resume.education.map((entry, idx) => (
                 <EducationEntry
                   key={idx}
@@ -379,10 +402,10 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
             </View>
           )}
 
-          {/* Certifications */}
+          {/* Certifications - keep entire section together */}
           {resume.certifications.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle} minPresenceAhead={40}>Certifications</Text>
+            <View style={styles.section} wrap={false} minPresenceAhead={100}>
+              <Text style={styles.sectionTitle}>Certifications</Text>
               {resume.certifications.map((cert, idx) => (
                 <CertificationItem
                   key={idx}
@@ -393,11 +416,23 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
             </View>
           )}
 
-          {/* Projects */}
+          {/* Projects - title stays with first entry */}
           {resume.projects.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle} minPresenceAhead={70}>Key Projects</Text>
-              {resume.projects.map((entry, idx) => (
+              {/* Wrap title + first entry together */}
+              <View minPresenceAhead={120}>
+                <Text style={styles.sectionTitle}>Key Projects</Text>
+                {resume.projects.length > 0 && (
+                  <ExperienceEntry
+                    title={resume.projects[0].title}
+                    organization={resume.projects[0].organization}
+                    dateRange={resume.projects[0].dateRange}
+                    bullets={resume.projects[0].bullets}
+                  />
+                )}
+              </View>
+              {/* Remaining entries can wrap naturally */}
+              {resume.projects.slice(1).map((entry, idx) => (
                 <ExperienceEntry
                   key={idx}
                   title={entry.title}
@@ -409,10 +444,10 @@ export function MinimalTemplate({ content, fullName, targetRole, contactInfo }: 
             </View>
           )}
 
-          {/* Other Sections */}
+          {/* Other Sections - keep title with first content item */}
           {resume.other.map((section, sIdx) => (
-            <View key={sIdx} style={styles.section}>
-              <Text style={styles.sectionTitle} minPresenceAhead={40}>{section.title}</Text>
+            <View key={sIdx} style={styles.section} wrap={false} minPresenceAhead={80}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
               {section.content.map((line, lIdx) => (
                 <View key={lIdx} style={styles.certItem} wrap={false}>
                   <Text style={styles.certBullet}>■</Text>
