@@ -119,21 +119,21 @@ const styles = StyleSheet.create({
   // Bullet points with gold square - improved alignment
   bulletContainer: {
     flexDirection: "row",
-    marginBottom: 4,  // Increased from 3pt for better spacing
-    paddingRight: 0,  // Removed extra padding
-    alignItems: "flex-start",  // Better alignment
+    marginBottom: 5,
+    paddingRight: 0,
+    alignItems: "flex-start",
   },
   bulletIcon: {
-    width: 14,  // Increased from 12pt for better alignment
-    fontSize: 7,  // Increased from 6pt
+    width: 16,
+    fontSize: 9,
     color: "#d4af37",
-    paddingTop: 2.5,  // Adjusted for better vertical alignment
-    flexShrink: 0,  // Prevent icon from shrinking
+    paddingTop: 1,
+    flexShrink: 0,
   },
   bulletText: {
     flex: 1,
-    fontSize: 10,  // Increased from 9pt
-    lineHeight: 1.5,  // Increased from 1.4
+    fontSize: 10,
+    lineHeight: 1.5,
     color: "#333333",
   },
   // Skills section
@@ -232,11 +232,11 @@ function buildContactParts(contactInfo?: ContactInfo): string[] {
   return parts;
 }
 
-// Bullet component with gold square - improved wrapping
+// Bullet component with gold square
 function Bullet({ text }: { text: string }) {
   return (
     <View style={styles.bulletContainer} wrap={false}>
-      <Text style={styles.bulletIcon}>■</Text>
+      <Text style={styles.bulletIcon}>•</Text>
       <Text style={styles.bulletText}>{text}</Text>
     </View>
   );
