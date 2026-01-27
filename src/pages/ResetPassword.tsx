@@ -7,15 +7,31 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SEO } from "@/components/SEO";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, Loader2, CheckCircle } from "lucide-react";
+import { FileText, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { validatePassword, getPasswordStrength } from "@/lib/validation";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const passwordStrength = getPasswordStrength(password);
+  const strengthColors = {
+    weak: "bg-red-500",
+    fair: "bg-yellow-500",
+    good: "bg-blue-500",
+    strong: "bg-green-500",
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    const { errors } = validatePassword(value);
+    setPasswordErrors(errors);
+  };
 
   useEffect(() => {
     // Check if we have a valid session from the email link
@@ -45,10 +61,13 @@ export default function ResetPassword() {
       return;
     }
 
-    if (password.length < 6) {
+    // SECURITY: Validate password strength
+    const { isValid, errors } = validatePassword(password);
+    if (!isValid) {
+      setPasswordErrors(errors);
       toast({
-        title: "Password too short",
-        description: "Password must be at least 6 characters long.",
+        title: "Weak Password",
+        description: "Please choose a stronger password",
         variant: "destructive",
       });
       return;
@@ -125,10 +144,46 @@ export default function ResetPassword() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
+                  className={passwordErrors.length > 0 ? "border-destructive" : ""}
                 />
+                {password && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-300 ${strengthColors[passwordStrength.label]}`}
+                          style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                        />
+                      </div>
+                      <span className={`text-xs font-medium capitalize ${
+                        passwordStrength.label === "strong" ? "text-green-600" :
+                        passwordStrength.label === "good" ? "text-blue-600" :
+                        passwordStrength.label === "fair" ? "text-yellow-600" : "text-red-600"
+                      }`}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                    {passwordErrors.length > 0 && (
+                      <div className="space-y-1">
+                        {passwordErrors.map((error, i) => (
+                          <p key={i} className="text-xs text-muted-foreground flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3 text-destructive" />
+                            {error}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {passwordErrors.length === 0 && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Password meets requirements
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -139,8 +194,15 @@ export default function ResetPassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
+                  className={confirmPassword && password !== confirmPassword ? "border-destructive" : ""}
                 />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Passwords do not match
+                  </p>
+                )}
               </div>
               <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
                 {isLoading ? (

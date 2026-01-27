@@ -13,9 +13,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { generatePDF, downloadPDF, TemplateName } from "@/pdf/PDFGenerator";
-import ReactMarkdown from "react-markdown";
-import { 
-  FileCheck, Download, Copy, RefreshCw, 
+import { SafeMarkdown } from "@/components/SafeMarkdown";
+import {
+  FileCheck, Download, Copy, RefreshCw,
   Loader2, TrendingUp, Sparkles, AlertCircle, Save, Check
 } from "lucide-react";
 
@@ -394,7 +394,8 @@ export default function Optimize() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <ReactMarkdown>{optimizedResume || "Generating your optimized resume..."}</ReactMarkdown>
+                  {/* SECURITY: Use SafeMarkdown to prevent XSS from AI-generated content */}
+                  <SafeMarkdown>{optimizedResume || "Generating your optimized resume..."}</SafeMarkdown>
                   {isStreaming && (
                     <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1" />
                   )}

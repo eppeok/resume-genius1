@@ -9,12 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Save, User, Phone, MapPin, Linkedin, Mail } from "lucide-react";
+import { ArrowLeft, Save, User, Phone, MapPin, Linkedin, Mail, AlertCircle } from "lucide-react";
+import { isValidLinkedInUrl, normalizeLinkedInUrl, isValidPhoneNumber, sanitizeText } from "@/lib/validation";
 
 export default function ProfileSettings() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
@@ -36,21 +38,63 @@ export default function ProfileSettings() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Real-time validation feedback
+    if (name === "linkedin_url" && value && !isValidLinkedInUrl(value)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        linkedin_url: "Please enter a valid LinkedIn URL (linkedin.com/in/username)",
+      }));
+    }
+
+    if (name === "phone" && value && !isValidPhoneNumber(value)) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        phone: "Please enter a valid phone number",
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
+    // SECURITY: Validate all inputs before submission
+    const errors: Record<string, string> = {};
+
+    if (formData.linkedin_url && !isValidLinkedInUrl(formData.linkedin_url)) {
+      errors.linkedin_url = "Please enter a valid LinkedIn URL (linkedin.com/in/username)";
+    }
+
+    if (formData.phone && !isValidPhoneNumber(formData.phone)) {
+      errors.phone = "Please enter a valid phone number";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      toast.error("Please fix the validation errors before saving");
+      return;
+    }
+
     setIsLoading(true);
     try {
+      // SECURITY: Sanitize text inputs and normalize URLs
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: formData.full_name.trim() || null,
+          full_name: sanitizeText(formData.full_name) || null,
           phone: formData.phone.trim() || null,
-          location: formData.location.trim() || null,
-          linkedin_url: formData.linkedin_url.trim() || null,
+          location: sanitizeText(formData.location) || null,
+          linkedin_url: normalizeLinkedInUrl(formData.linkedin_url) || null,
         })
         .eq("id", user.id);
 
@@ -144,7 +188,14 @@ export default function ProfileSettings() {
                   value={formData.phone}
                   onChange={handleInputChange}
                   maxLength={20}
+                  className={validationErrors.phone ? "border-destructive" : ""}
                 />
+                {validationErrors.phone && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.phone}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -176,7 +227,14 @@ export default function ProfileSettings() {
                   value={formData.linkedin_url}
                   onChange={handleInputChange}
                   maxLength={200}
+                  className={validationErrors.linkedin_url ? "border-destructive" : ""}
                 />
+                {validationErrors.linkedin_url && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {validationErrors.linkedin_url}
+                  </p>
+                )}
               </div>
 
               <Button type="submit" disabled={isLoading} className="w-full gap-2">
