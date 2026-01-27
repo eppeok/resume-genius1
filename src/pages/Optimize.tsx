@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
-
 import { EditableResumeContent } from "@/components/EditableResumeContent";
+import { PDFPreviewModal } from "@/components/PDFPreviewModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,7 @@ import { generatePDF, downloadPDF, TemplateName } from "@/pdf/PDFGenerator";
 import ReactMarkdown from "react-markdown";
 import { 
   FileCheck, Download, Copy, RefreshCw, 
-  Loader2, TrendingUp, Sparkles, AlertCircle, Save, Check
+  Loader2, TrendingUp, Sparkles, AlertCircle, Save, Check, Eye
 } from "lucide-react";
 
 interface ATSScores {
@@ -43,8 +43,8 @@ export default function Optimize() {
   const [savedResumeId, setSavedResumeId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const analyzeResume = async (resume: string, jobDescription: string): Promise<ATSScores> => {
     // Use authenticated request
@@ -484,6 +484,14 @@ export default function Optimize() {
                     <Button 
                       variant="outline" 
                       size="sm" 
+                      onClick={() => setShowPreview(true)}
+                    >
+                      <Eye className="h-4 w-4" />
+                      Preview PDF
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
                       onClick={() => handleDownloadPDF("minimal")}
                       disabled={isDownloading}
                     >
@@ -507,6 +515,21 @@ export default function Optimize() {
               <RefreshCw className="h-4 w-4" />
               Optimize Another Resume
             </Button>
+
+            {/* PDF Preview Modal */}
+            <PDFPreviewModal
+              isOpen={showPreview}
+              onClose={() => setShowPreview(false)}
+              content={editedResume || optimizedResume}
+              fullName={formData?.fullName || ""}
+              targetRole={formData?.targetRole || ""}
+              contactInfo={{
+                email: formData?.email,
+                phone: formData?.phone,
+                location: formData?.location,
+                linkedinUrl: formData?.linkedinUrl,
+              }}
+            />
           </div>
         )}
       </div>
