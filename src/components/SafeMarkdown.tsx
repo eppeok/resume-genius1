@@ -72,15 +72,16 @@ export function SafeMarkdown({ children, className }: SafeMarkdownProps) {
   }
 
   return (
-    <ReactMarkdown
-      className={className}
-      components={secureComponents}
-      // SECURITY: react-markdown v10+ disallows raw HTML by default
-      // This is explicit for clarity and documentation
-      skipHtml={true}
-    >
-      {children}
-    </ReactMarkdown>
+    <div className={className}>
+      <ReactMarkdown
+        components={secureComponents}
+        // SECURITY: react-markdown v10+ disallows raw HTML by default
+        // This is explicit for clarity and documentation
+        skipHtml={true}
+      >
+        {children}
+      </ReactMarkdown>
+    </div>
   );
 }
 
