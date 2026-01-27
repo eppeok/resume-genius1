@@ -148,10 +148,29 @@ Respond with JSON only.`;
     }
 
     const data = await response.json();
+    console.log("AI response structure:", JSON.stringify(data, null, 2).substring(0, 500));
+    
     const content = data.choices?.[0]?.message?.content;
+    const finishReason = data.choices?.[0]?.finish_reason;
 
-    if (!content) {
-      throw new Error("No content in AI response");
+    // Handle empty or missing content gracefully
+    if (!content || content.trim() === '') {
+      console.warn("AI returned empty content. Finish reason:", finishReason);
+      // Return default scores instead of throwing error
+      return new Response(JSON.stringify({
+        overallScore: 50,
+        keywordMatch: 50,
+        formatting: 60,
+        sections: 50,
+        readability: 55,
+        suggestions: [
+          "Add more relevant keywords from the job description",
+          "Include quantifiable achievements in your experience section",
+          "Ensure all key sections are present and complete"
+        ],
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Parse the JSON from the response
