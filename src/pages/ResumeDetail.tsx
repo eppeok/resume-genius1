@@ -7,12 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 import { EditableResumeContent } from "@/components/EditableResumeContent";
-import { PDFPreviewModal } from "@/components/PDFPreviewModal";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { generatePDF, downloadPDF } from "@/pdf/PDFGenerator";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Calendar, Briefcase, Loader2, FileCheck, Copy, Download, Save, Eye } from "lucide-react";
+import { ArrowLeft, Calendar, Briefcase, Loader2, FileCheck, Copy, Download, Save } from "lucide-react";
 import { format } from "date-fns";
 
 interface ResumeData {
@@ -47,7 +47,7 @@ export default function ResumeDetail() {
   const [editedContent, setEditedContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  
 
   useEffect(() => {
     if (id) {
@@ -272,14 +272,6 @@ export default function ResumeDetail() {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => setShowPreview(true)}
-                  >
-                    <Eye className="h-4 w-4" />
-                    Preview PDF
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
                     onClick={handleDownloadPDF}
                     disabled={isDownloading}
                   >
@@ -300,20 +292,6 @@ export default function ResumeDetail() {
           </Card>
         )}
 
-        {/* PDF Preview Modal */}
-        <PDFPreviewModal
-          isOpen={showPreview}
-          onClose={() => setShowPreview(false)}
-          content={editedContent}
-          fullName={resume.full_name || ""}
-          targetRole={resume.target_role || ""}
-          contactInfo={{
-            email: profile?.email,
-            phone: profile?.phone || undefined,
-            location: profile?.location || undefined,
-            linkedinUrl: profile?.linkedin_url || undefined,
-          }}
-        />
       </div>
     </div>
   );
