@@ -18,9 +18,11 @@ const styles = StyleSheet.create({
   // Navy header band
   headerBand: {
     backgroundColor: "#1e3a5f",
-    paddingHorizontal: 0,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 24,
+    marginHorizontal: -72,  // Extend to page edges (negate page padding)
+    marginTop: -72,         // Extend to top edge
   },
   name: {
     fontSize: 24,
