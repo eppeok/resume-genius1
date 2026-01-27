@@ -19,22 +19,23 @@ const styles = StyleSheet.create({
   headerBand: {
     backgroundColor: "#1e3a5f",
     paddingHorizontal: 0,
-    paddingTop: 20,  // Increased from 18pt for better spacing
-    paddingBottom: 16,  // Increased from 14pt
+    paddingTop: 24,
+    paddingBottom: 20,
   },
   name: {
-    fontSize: 24,  // Increased from 22pt for better visibility
+    fontSize: 24,
     fontFamily: "Helvetica-Bold",
     color: "#ffffff",
-    marginBottom: 5,  // Increased from 4pt
+    marginBottom: 8,  // Increased spacing below name
     letterSpacing: 0.5,
   },
   title: {
-    fontSize: 11,  // Increased from 10pt
+    fontSize: 11,
     color: "#d4af37",
     textTransform: "uppercase",
     letterSpacing: 2,
-    marginBottom: 10,  // Increased from 8pt
+    marginTop: 4,  // Add space above title
+    marginBottom: 14,  // More space before contact row
   },
   contactRow: {
     flexDirection: "row",
