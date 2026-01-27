@@ -2,7 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { FileText, LogOut, User, CreditCard, History, Sparkles, Settings, Shield } from "lucide-react";
+import { LogOut, User, CreditCard, History, Sparkles, Settings, Shield } from "lucide-react";
+import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +25,8 @@ export function Navigation() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
       <div className="container max-w-6xl flex items-center justify-between h-16 px-4">
-        <Link to="/" className="flex items-center gap-2 font-display font-bold text-xl">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <FileText className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-gradient">EvolvXTalent</span>
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="EvolvXTalent" className="h-8 w-auto" />
         </Link>
 
         <div className="flex items-center gap-4">
