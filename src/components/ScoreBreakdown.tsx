@@ -20,7 +20,7 @@ export function ScoreBreakdown({ keywordMatch, formatting, sections, readability
   const scores = { keywordMatch, formatting, sections, readability };
 
   const getProgressColor = (score: number) => {
-    if (score >= 80) return "bg-success";
+    if (score >= 80) return "bg-gradient-primary";
     if (score >= 60) return "bg-warning";
     return "bg-destructive";
   };

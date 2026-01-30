@@ -115,7 +115,7 @@ export default function ResetPassword() {
             <img src={logo} alt="EvolvXTalent" className="h-10 w-auto" />
           </Link>
           <CardTitle className="text-2xl font-display">
-            {isSuccess ? "Password Updated!" : "Set New Password"}
+            {isSuccess ? <span>Password <span className="text-gradient">Updated!</span></span> : <span>Set New <span className="text-gradient">Password</span></span>}
           </CardTitle>
           <CardDescription>
             {isSuccess 

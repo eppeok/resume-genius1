@@ -124,7 +124,7 @@ export default function Login() {
           <Link to="/" className="flex items-center justify-center mb-4">
             <img src={logo} alt="EvolvXTalent" className="h-10 w-auto" />
           </Link>
-          <CardTitle className="text-2xl font-display">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-display">Welcome <span className="text-gradient">Back</span></CardTitle>
           <CardDescription>Sign in to your account to continue</CardDescription>
         </CardHeader>
         <CardContent>
