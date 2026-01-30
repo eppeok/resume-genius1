@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Sparkles, CheckCircle, Zap, FileText, TrendingUp, 
-  Download, Shield, Target, Award 
+  Download, Shield, Target, Award, Briefcase 
 } from "lucide-react";
 
 const organizationSchema = {
@@ -87,6 +88,11 @@ const features = [
     description: "Our AI rewrites your resume to perfectly match job descriptions",
   },
   {
+    icon: Briefcase,
+    title: "Global Job Search",
+    description: "Find relevant jobs from LinkedIn, Indeed, Glassdoor, and regional boards worldwide",
+  },
+  {
     icon: Download,
     title: "PDF Export",
     description: "Download in 3 professional templates: Classic, Modern, or Executive",
@@ -106,13 +112,14 @@ const stats = [
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gradient-hero flex flex-col">
       <SEO 
         canonical="/"
         structuredData={combinedSchema}
       />
       <Navigation />
       
+      <main className="flex-1">
       {/* Hero Section */}
       <section className="container max-w-6xl py-16 md:py-24 px-4">
         <div className="text-center max-w-3xl mx-auto">
@@ -177,7 +184,7 @@ const Index = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {features.map((feature) => (
             <Card key={feature.title} className="border-border/50 bg-gradient-card hover:shadow-elevated transition-shadow">
               <CardContent className="pt-6">
@@ -240,12 +247,9 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8">
-        <div className="container max-w-6xl px-4 text-center text-sm text-muted-foreground">
-          <p>© 2025 EvolvXTalent. Powered by AI • Your data is processed securely</p>
-        </div>
-      </footer>
+      </main>
+
+      <Footer />
     </div>
   );
 };

@@ -24,6 +24,9 @@ import CouponManagement from "./pages/admin/CouponManagement";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import NotFound from "./pages/NotFound";
 import Jobs from "./pages/Jobs";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Refund from "./pages/Refund";
 
 const App = () => {
   const queryClient = new QueryClient();
@@ -53,6 +56,9 @@ const App = () => {
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
             <Route path="/admin/coupons" element={<AdminRoute><CouponManagement /></AdminRoute>} />
             <Route path="/admin/activity" element={<AdminRoute><ActivityLogs /></AdminRoute>} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/refund" element={<Refund />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
