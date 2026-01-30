@@ -5,42 +5,43 @@
 @tailwind utilities;
 
 /* EvolvXTalent Design System
-   Modern SaaS aesthetic with vibrant violet/indigo palette
+   Modern SaaS aesthetic with magenta-to-blue gradient palette (matching logo)
+   Primary: #e107c6 (magenta) → #0d64ce (blue)
 */
 
 @layer base {
   :root {
-    /* Core palette - Vibrant violet/indigo */
+    /* Core palette */
     --background: 240 20% 99%;
-    --foreground: 240 10% 10%;
+    --foreground: 220 15% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
+    --card-foreground: 220 15% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
+    --popover-foreground: 220 15% 10%;
 
-    /* Primary - Vibrant violet */
-    --primary: 262 83% 58%;
+    /* Primary - Vibrant magenta (from logo #e107c6) */
+    --primary: 310 97% 46%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft lavender */
-    --secondary: 260 30% 96%;
-    --secondary-foreground: 262 50% 35%;
+    /* Secondary - Soft lavender tint */
+    --secondary: 280 30% 96%;
+    --secondary-foreground: 310 50% 35%;
 
-    --muted: 260 20% 94%;
-    --muted-foreground: 260 10% 45%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 10% 45%;
 
-    /* Accent - Electric indigo */
-    --accent: 245 85% 60%;
+    /* Accent - Electric blue (from logo #0d64ce) */
+    --accent: 213 89% 43%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 260 20% 90%;
-    --input: 260 20% 90%;
-    --ring: 262 83% 58%;
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 310 97% 46%;
 
     --radius: 0.75rem;
 
@@ -52,76 +53,77 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(245 85% 60%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(245 85% 60%) 0%, hsl(280 80% 55%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(260 30% 99%) 0%, hsl(260 40% 97%) 50%, hsl(262 35% 95%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(260 30% 99%) 100%);
+    /* Gradients - matching logo "Talent" text gradient */
+    --gradient-primary: linear-gradient(180deg, hsl(310 97% 46%) 0%, hsl(213 89% 43%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(310 97% 46%) 0%, hsl(270 80% 50%) 50%, hsl(213 89% 43%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(280 30% 99%) 0%, hsl(260 35% 97%) 50%, hsl(220 30% 96%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(280 20% 99%) 100%);
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(262 50% 20% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(262 50% 20% / 0.08), 0 2px 4px -2px hsl(262 50% 20% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(262 50% 20% / 0.1), 0 4px 6px -4px hsl(262 50% 20% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(262 50% 20% / 0.12), 0 8px 10px -6px hsl(262 50% 20% / 0.05);
-    --shadow-glow: 0 0 50px hsl(262 83% 58% / 0.2);
+    /* Shadows with brand tint */
+    --shadow-sm: 0 1px 2px 0 hsl(260 50% 20% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(260 50% 20% / 0.08), 0 2px 4px -2px hsl(260 50% 20% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(260 50% 20% / 0.1), 0 4px 6px -4px hsl(260 50% 20% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(260 50% 20% / 0.12), 0 8px 10px -6px hsl(260 50% 20% / 0.05);
+    --shadow-glow: 0 0 50px hsl(310 97% 46% / 0.25);
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 262 83% 58%;
+    --sidebar-foreground: 220 10% 26%;
+    --sidebar-primary: 310 97% 46%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 30% 96%;
-    --sidebar-accent-foreground: 262 50% 35%;
-    --sidebar-border: 260 20% 92%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-accent: 280 30% 96%;
+    --sidebar-accent-foreground: 310 50% 35%;
+    --sidebar-border: 220 20% 92%;
+    --sidebar-ring: 310 97% 46%;
   }
 
   .dark {
-    --background: 240 15% 8%;
+    --background: 220 20% 8%;
     --foreground: 0 0% 98%;
 
-    --card: 240 12% 12%;
+    --card: 220 18% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 12% 12%;
+    --popover: 220 18% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 262 80% 65%;
-    --primary-foreground: 240 15% 8%;
+    --primary: 310 90% 55%;
+    --primary-foreground: 220 20% 8%;
 
-    --secondary: 260 15% 18%;
-    --secondary-foreground: 260 30% 85%;
+    --secondary: 280 15% 18%;
+    --secondary-foreground: 280 30% 85%;
 
-    --muted: 260 15% 20%;
-    --muted-foreground: 260 15% 60%;
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 15% 60%;
 
-    --accent: 245 80% 65%;
-    --accent-foreground: 240 15% 8%;
+    --accent: 213 85% 55%;
+    --accent-foreground: 220 20% 8%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 260 15% 20%;
-    --input: 260 15% 20%;
-    --ring: 262 80% 65%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 310 90% 55%;
 
     --success: 158 64% 50%;
-    --success-foreground: 240 15% 8%;
+    --success-foreground: 220 20% 8%;
 
     /* Warning color */
     --warning: 38 92% 50%;
-    --warning-foreground: 240 15% 8%;
+    --warning-foreground: 220 20% 8%;
 
-    --gradient-hero: linear-gradient(180deg, hsl(240 15% 8%) 0%, hsl(260 20% 12%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(240 12% 12%) 0%, hsl(260 15% 14%) 100%);
+    --gradient-primary: linear-gradient(180deg, hsl(310 90% 55%) 0%, hsl(213 85% 55%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(220 20% 8%) 0%, hsl(260 20% 12%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(220 18% 12%) 0%, hsl(260 15% 14%) 100%);
 
-    --sidebar-background: 240 12% 10%;
+    --sidebar-background: 220 18% 10%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 262 80% 65%;
+    --sidebar-primary: 310 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 15% 18%;
-    --sidebar-accent-foreground: 260 30% 85%;
-    --sidebar-border: 260 15% 18%;
-    --sidebar-ring: 262 80% 65%;
+    --sidebar-accent: 280 15% 18%;
+    --sidebar-accent-foreground: 280 30% 85%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 310 90% 55%;
   }
 }
 
@@ -152,6 +154,10 @@
 
   .bg-gradient-card {
     background: var(--gradient-card);
+  }
+
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
   }
 
   .shadow-glow {
