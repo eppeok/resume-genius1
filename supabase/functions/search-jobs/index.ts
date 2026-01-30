@@ -236,19 +236,47 @@ Return ONLY valid JSON, no markdown formatting.`;
       // Sort by match score
       sanitizedJobs.sort((a: JobResult, b: JobResult) => b.matchScore - a.matchScore);
 
-      // Detect sources searched based on location
-      const isIndianLocation = location.toLowerCase().includes("india") || 
-        location.toLowerCase().includes("bangalore") || 
-        location.toLowerCase().includes("mumbai") ||
-        location.toLowerCase().includes("delhi") ||
-        location.toLowerCase().includes("hyderabad") ||
-        location.toLowerCase().includes("chennai") ||
-        location.toLowerCase().includes("pune") ||
-        location.toLowerCase().includes("kolkata");
+      // Detect region and select appropriate job boards
+      const locationLower = location.toLowerCase();
+      
+      const getRegionalJobBoards = (loc: string): string[] => {
+        // India
+        if (/india|bangalore|bengaluru|mumbai|delhi|hyderabad|chennai|pune|kolkata|noida|gurgaon/.test(loc)) {
+          return ["LinkedIn", "Naukri", "Indeed", "Foundit"];
+        }
+        // Australia
+        if (/australia|sydney|melbourne|brisbane|perth|adelaide/.test(loc)) {
+          return ["LinkedIn", "Seek", "Indeed", "Jora"];
+        }
+        // UK
+        if (/\buk\b|united kingdom|london|manchester|birmingham|glasgow|edinburgh|bristol/.test(loc)) {
+          return ["LinkedIn", "Indeed", "Reed", "Totaljobs"];
+        }
+        // Canada
+        if (/canada|toronto|vancouver|montreal|calgary|ottawa/.test(loc)) {
+          return ["LinkedIn", "Indeed", "Workopolis", "Job Bank"];
+        }
+        // Germany
+        if (/germany|berlin|munich|frankfurt|hamburg|düsseldorf|cologne/.test(loc)) {
+          return ["LinkedIn", "Indeed", "StepStone", "XING"];
+        }
+        // Singapore
+        if (/singapore/.test(loc)) {
+          return ["LinkedIn", "Indeed", "JobStreet", "MyCareersFuture"];
+        }
+        // UAE/Middle East
+        if (/uae|dubai|abu dhabi|united arab emirates|qatar|saudi/.test(loc)) {
+          return ["LinkedIn", "Bayt", "GulfTalent", "Indeed"];
+        }
+        // Remote
+        if (/remote/.test(loc)) {
+          return ["LinkedIn", "Indeed", "We Work Remotely", "Remote.co"];
+        }
+        // Default: US and Global
+        return ["LinkedIn", "Indeed", "Glassdoor", "ZipRecruiter"];
+      };
 
-      const sourcesList = isIndianLocation 
-        ? ["LinkedIn", "Naukri", "Indeed", "Google Jobs"]
-        : ["LinkedIn", "Indeed", "Glassdoor", "Google Jobs"];
+      const sourcesList = getRegionalJobBoards(locationLower);
 
       // Save job search to database
       const { data: searchRecord, error: insertError } = await serviceClient

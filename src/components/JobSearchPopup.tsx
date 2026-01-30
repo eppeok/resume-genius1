@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { searchJobs, type JobResult } from "@/lib/api/jobs";
 import { JobResultsList } from "@/components/JobResultsList";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
+import { getRegionalJobBoards, formatJobBoardsList } from "@/lib/jobBoardUtils";
 
 interface JobSearchPopupProps {
   open: boolean;
@@ -42,6 +43,11 @@ export function JobSearchPopup({
   const [jobs, setJobs] = useState<JobResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [sourcesSearched, setSourcesSearched] = useState<string[]>([]);
+
+  // Get job boards based on current location
+  const jobBoards = useMemo(() => {
+    return location.trim() ? getRegionalJobBoards(location) : getRegionalJobBoards("");
+  }, [location]);
 
   const handleSearch = async () => {
     if (!targetRole.trim() || !location.trim()) {
@@ -168,7 +174,7 @@ export function JobSearchPopup({
 
               <div className="text-xs text-muted-foreground">
                 <Sparkles className="h-3 w-3 inline mr-1" />
-                We'll search LinkedIn, Indeed, Glassdoor, and other job boards based on your location.
+                We'll search {formatJobBoardsList(jobBoards)} based on your location.
               </div>
             </div>
 
