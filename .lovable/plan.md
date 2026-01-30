@@ -1,183 +1,319 @@
 
-# Job Recommendations Feature - Implementation Plan ✅ IMPLEMENTED
+# Comprehensive Edge-to-Edge Testing Plan for EvolvXTalent Platform
 
-## Overview
-Add a feature that recommends relevant job openings to candidates based on their resume profile, target role, and location. The system will scrape jobs from multiple sources (LinkedIn, Indeed, Naukri, Google Jobs) based on location relevance.
+## Platform Overview
 
-## User Experience Flow
+EvolvXTalent is a resume optimization platform with the following core features:
+- **Authentication**: Signup, login, email verification, password reset, rate limiting
+- **Resume Optimization**: PDF parsing, AI-powered ATS analysis and optimization
+- **Job Search**: AI-powered job matching using Firecrawl
+- **Payments**: Stripe checkout, credit purchases, coupon system
+- **Referral System**: User referrals with credit rewards
+- **Admin Panel**: User management, coupon management, activity logs
 
-### Flow 1: After Resume Optimization (Primary)
-1. After resume optimization completes, show a dismissible popup/dialog
-2. Ask: "Would you like to see relevant job openings for your profile?"
-3. If user clicks "Find Jobs" (costs 2 credit), search and display matching jobs
-4. Jobs are saved and linked to the resume record
+## Testing Strategy
 
-### Flow 2: Dedicated Jobs Page
-1. New `/jobs` page accessible from navigation
-2. User can search for jobs using their saved profile data
-3. Can filter by role, location, and job sources
-4. Each search costs 2 credit
+I'll create Deno tests for all 8 edge functions and organize them systematically.
 
 ---
 
-## Technical Implementation
+## Phase 1: Edge Function Tests
 
-### Phase 1: Database Schema
-Create a new `job_searches` table to store search results:
+### 1. `analyze-ats` Function Tests
+**File**: `supabase/functions/analyze-ats/index.test.ts`
 
-```text
-job_searches table:
-- id (uuid, primary key)
-- user_id (uuid, foreign key to profiles)
-- resume_id (uuid, nullable, foreign key to resumes)
-- search_query (text) - the role/keywords searched
-- location (text) - location filter used
-- job_results (jsonb) - array of job listings
-- sources_searched (text[]) - which sources were queried
-- created_at (timestamp)
-```
+Test cases:
+- Authentication: Reject requests without auth header
+- Authentication: Reject requests with invalid token
+- Input validation: Reject empty resume
+- Input validation: Reject resume exceeding 50KB limit
+- Input validation: Reject empty job description
+- Input validation: Reject job description exceeding 10KB limit
+- Happy path: Returns valid ATS scores structure (overallScore, keywordMatch, formatting, sections, readability)
+- Graceful degradation: Returns default scores when AI returns empty content
 
-RLS Policies:
-- Users can view/insert their own job searches
-- Admins can view all job searches
+### 2. `optimize-resume` Function Tests
+**File**: `supabase/functions/optimize-resume/index.test.ts`
 
-### Phase 2: Backend - Edge Function
-Create `supabase/functions/search-jobs/index.ts`:
+Test cases:
+- Authentication: Reject unauthenticated requests
+- Credit check: Reject when user has insufficient credits
+- Input validation: Reject empty resume (refunds credit)
+- Input validation: Reject oversized resume (refunds credit)
+- Input validation: Reject empty job description (refunds credit)
+- Input validation: Reject oversized job description (refunds credit)
+- Input validation: Reject oversized fullName field
+- Input validation: Reject oversized currentRole field
+- Input validation: Reject oversized targetRole field
+- Credit deduction: Deducts 1 credit on successful optimization
+- Credit refund: Refunds credit when AI call fails
+- Referral system: Awards referral credits on first optimization
+- Streaming: Returns streaming response for AI content
 
-1. **Authentication & Credit Check**
-   - Verify user is authenticated
-   - Check user has at least 2 credit
-   - Deduct credit server-side before processing
+### 3. `parse-pdf` Function Tests
+**File**: `supabase/functions/parse-pdf/index.test.ts`
 
-2. **Job Search Logic**
-   - Use Firecrawl to search Google Jobs (aggregates from multiple sources)
-   - Construct search queries based on:
-     - Target role from resume/form
-     - Location from user profile
-     - Key skills extracted from resume
-   - For Indian locations: prioritize Naukri results via Google Jobs
-   - For other locations: LinkedIn + Indeed via Google Jobs
+Test cases:
+- Authentication: Reject requests without auth header
+- File validation: Reject requests without file
+- File validation: Reject files larger than 5MB
+- File validation: Reject non-PDF files
+- Text extraction: Successfully extracts text from valid PDF
+- AI OCR fallback: Uses AI OCR when basic extraction fails
+- Validation: Rejects PDFs with no usable resume content
 
-3. **AI Processing**
-   - Use Lovable AI (Gemini) to parse and rank jobs by relevance
-   - Extract structured data: title, company, location, salary, apply link, match score
+### 4. `search-jobs` Function Tests
+**File**: `supabase/functions/search-jobs/index.test.ts`
 
-4. **Response Format**
-   ```json
-   {
-     "jobs": [
-       {
-         "title": "Senior Software Engineer",
-         "company": "Tech Corp",
-         "location": "Bangalore, India",
-         "salary": "INR 25-35 LPA",
-         "source": "LinkedIn",
-         "applyUrl": "https://...",
-         "matchScore": 92,
-         "postedDate": "2 days ago",
-         "highlights": ["5+ years experience match", "React skills match"]
-       }
-     ],
-     "totalFound": 25,
-     "searchId": "uuid"
-   }
-   ```
+Test cases:
+- Authentication: Reject unauthenticated requests
+- Input validation: Reject missing targetRole
+- Input validation: Reject targetRole exceeding 200 characters
+- Input validation: Reject missing location
+- Input validation: Reject location exceeding 200 characters
+- Credit check: Reject when user has less than 2 credits
+- Credit deduction: Deducts 2 credits on successful search
+- Credit refund: Refunds 2 credits when search fails
+- Regional boards: Returns correct job boards for different regions (India, UK, US, etc.)
+- Result structure: Returns valid job result structure with matchScore, applyUrl, etc.
 
-### Phase 3: Frontend Components
+### 5. `create-checkout` Function Tests
+**File**: `supabase/functions/create-checkout/index.test.ts`
 
-#### New Components:
+Test cases:
+- Authentication: Reject requests without auth header
+- Authentication: Reject requests with invalid token
+- Validation: Reject missing pack_id
+- Validation: Reject invalid pack_id
+- Valid packs: Accept "10-credits", "25-credits", "50-credits"
+- Pricing integrity: Server-side pricing matches expected values (900, 1900, 2900 cents)
+- Coupon validation: Invalid coupon returns error
+- Coupon validation: Already-used coupon returns error
+- Coupon validation: Expired coupon returns error
+- Coupon discount: Percentage discount applied correctly
+- Coupon discount: Fixed discount applied correctly
+- Coupon minimum: Enforces minimum price of 50 cents
+- Origin allowlist: Accepts requests from allowed origins
+- Origin allowlist: Rejects requests from unknown origins
 
-1. **`src/components/JobSearchPopup.tsx`**
-   - Dialog/sheet that appears after optimization
-   - Shows credit cost warning
-   - "Find Jobs" and "Maybe Later" buttons
-   - Loading state while searching
+### 6. `stripe-webhook` Function Tests
+**File**: `supabase/functions/stripe-webhook/index.test.ts`
 
-2. **`src/components/JobCard.tsx`**
-   - Individual job listing card
-   - Shows: title, company, location, salary, match score
-   - "Apply" button opens external link
-   - Highlights matching skills/experience
+Test cases:
+- Signature verification: Reject missing stripe-signature header
+- Signature verification: Reject invalid signature
+- Metadata validation: Reject missing user_id in metadata
+- Metadata validation: Reject missing/invalid credits in metadata
+- Metadata validation: Reject invalid pack_id
+- Price verification: Reject if amount_total doesn't match expected price
+- Duplicate prevention: Ignore duplicate session_id (replay attack protection)
+- Credit addition: Successfully adds credits to user
+- Transaction recording: Creates credit_transaction record
+- Coupon tracking: Records coupon redemption when used
+- Coupon tracking: Increments coupon usage count
+- Email notification: Triggers purchase confirmation email
 
-3. **`src/components/JobResultsList.tsx`**
-   - Grid/list of JobCards
-   - Sort by: relevance, date posted, salary
-   - Filter by: source, location
+### 7. `send-purchase-email` Function Tests
+**File**: `supabase/functions/send-purchase-email/index.test.ts`
 
-4. **`src/pages/Jobs.tsx`**
-   - Dedicated jobs page
-   - Search form with role, location inputs
-   - Display past job searches
-   - New search functionality
+Test cases:
+- Authorization: Reject requests without service role key
+- Authorization: Reject requests with regular user token
+- Input validation: Reject missing user_id
+- Input validation: Reject invalid user_id (not found)
+- Email sending: Successfully sends confirmation email via Resend
+- Email content: Includes correct credits, amount, and coupon info
+- Configuration: Fails gracefully when RESEND_API_KEY missing
 
-#### Modifications:
+### 8. `send-referral-email` Function Tests
+**File**: `supabase/functions/send-referral-email/index.test.ts`
 
-1. **`src/pages/Optimize.tsx`**
-   - Add state for job popup visibility
-   - Show JobSearchPopup after successful optimization
-   - Pass resume data to popup for context
-
-2. **`src/components/Navigation.tsx`**
-   - Add "Jobs" link to navigation menu
-
-3. **`src/App.tsx`**
-   - Add route for `/jobs` page
-
-### Phase 4: API Integration with Firecrawl
-
-The edge function will use Firecrawl's search feature:
-
-```text
-Search Strategy:
-1. Primary: Google Jobs search
-   - Query: "[target_role] jobs in [location]"
-   - Firecrawl scrapes Google Jobs which aggregates from multiple sources
-
-2. Source Detection:
-   - Parse job listings to identify original source (LinkedIn, Indeed, Naukri, etc.)
-   - Tag each result with its source
-
-3. Location-Aware Sources:
-   - India: Prioritize Naukri, LinkedIn India
-   - US/Global: Prioritize LinkedIn, Indeed, Glassdoor
-```
+Test cases:
+- Authorization: Reject requests without service role key
+- Input validation: Reject missing referrer_id or referred_id
+- Input validation: Reject invalid user IDs
+- Email sending: Sends email to both referrer and referred user
+- Email content: Includes correct credit reward information
 
 ---
 
-## File Structure
+## Phase 2: Integration Test Scenarios
+
+### User Journey Tests
+**File**: `supabase/functions/_tests/integration/user-journey.test.ts`
 
 ```text
-New Files:
-- supabase/functions/search-jobs/index.ts
-- src/pages/Jobs.tsx
-- src/components/JobSearchPopup.tsx
-- src/components/JobCard.tsx
-- src/components/JobResultsList.tsx
-- src/lib/api/jobs.ts (API helper functions)
-
-Modified Files:
-- src/pages/Optimize.tsx (add popup trigger)
-- src/components/Navigation.tsx (add Jobs link)
-- src/App.tsx (add /jobs route)
-- supabase/config.toml (add search-jobs function config)
+Full User Journey Flow:
+1. User signs up with referral code
+2. User logs in
+3. User uploads PDF resume
+4. User runs ATS analysis (free)
+5. User optimizes resume (1 credit)
+6. User views optimization results
+7. Referrer receives referral credits
+8. User searches for jobs (2 credits)
+9. User bookmarks a job
+10. User purchases more credits with coupon
+11. User receives purchase confirmation email
 ```
 
 ---
 
-## Cost & Credits
+## Phase 3: Security Tests
 
-- Each job search costs 2 credit (1 credit more than resume optimization)
-- Credit is deducted server-side before Firecrawl API call
-- If search fails, credit is refunded
-- Search results are cached in database for future reference
+### Database RLS Tests
+**File**: `supabase/functions/_tests/security/rls.test.ts`
+
+Test cases:
+- Anonymous users cannot read any tables
+- Anonymous users cannot write to any tables
+- Users can only read their own profile
+- Users can only read their own resumes
+- Users can only read their own bookmarks
+- Users can only read their own transactions
+- Admins can read all user data
+- Admins can manage coupons
+
+### CORS Security Tests
+**File**: `supabase/functions/_tests/security/cors.test.ts`
+
+Test cases:
+- Allowed origins receive proper CORS headers
+- Unknown origins fall back to production origin
+- Preflight requests handled correctly
 
 ---
 
-## Security Considerations
+## Phase 4: Test Infrastructure
 
-1. **Input Validation**: Validate role and location inputs for length and characters
-2. **Rate Limiting**: Limit to 10 job searches per hour per user
-3. **RLS Policies**: Users can only access their own job search history
-4. **Credit Protection**: Deduct credits server-side with refund on failure
-5. **URL Safety**: Validate and sanitize external job URLs before displaying
+### Shared Test Utilities
+**File**: `supabase/functions/_tests/test-utils.ts`
 
+```typescript
+// Test utilities will include:
+- createTestUser(): Creates test user and returns auth token
+- cleanupTestUser(): Removes test user and all associated data
+- createTestResume(): Creates mock resume data
+- createTestPDF(): Creates mock PDF file
+- mockStripeWebhook(): Creates signed Stripe webhook payload
+- expectUnauthorized(): Helper for auth tests
+- expectValidationError(): Helper for input validation tests
+```
+
+### Environment Configuration
+**File**: `supabase/functions/_tests/setup.ts`
+
+```typescript
+import "https://deno.land/std@0.224.0/dotenv/load.ts";
+
+// Load environment variables from root .env
+const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL")!;
+const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
+```
+
+---
+
+## Technical Implementation Details
+
+### Test File Structure
+```text
+supabase/functions/
+  _tests/
+    setup.ts              # Shared setup and environment
+    test-utils.ts         # Helper functions
+    integration/
+      user-journey.test.ts
+    security/
+      rls.test.ts
+      cors.test.ts
+  analyze-ats/
+    index.ts
+    index.test.ts
+  create-checkout/
+    index.ts
+    index.test.ts
+  optimize-resume/
+    index.ts
+    index.test.ts
+  parse-pdf/
+    index.ts
+    index.test.ts
+  search-jobs/
+    index.ts
+    index.test.ts
+  send-purchase-email/
+    index.ts
+    index.test.ts
+  send-referral-email/
+    index.ts
+    index.test.ts
+  stripe-webhook/
+    index.ts
+    index.test.ts
+```
+
+### Test Execution
+All tests will be run using the Deno test runner with:
+- `--allow-net` for HTTP requests
+- `--allow-env` for environment variables
+- 120-second timeout for longer integration tests
+
+### Critical Test Patterns
+
+1. **Always consume response bodies** to prevent resource leaks:
+```typescript
+const response = await fetch(url);
+const body = await response.text();
+assertEquals(response.status, 401);
+```
+
+2. **Use real deployed functions** via HTTP requests:
+```typescript
+const response = await fetch(
+  `${SUPABASE_URL}/functions/v1/analyze-ats`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ resume, jobDescription }),
+  }
+);
+```
+
+---
+
+## Estimated Test Count
+
+| Function | Test Cases |
+|----------|------------|
+| analyze-ats | 8 tests |
+| optimize-resume | 13 tests |
+| parse-pdf | 7 tests |
+| search-jobs | 11 tests |
+| create-checkout | 14 tests |
+| stripe-webhook | 12 tests |
+| send-purchase-email | 7 tests |
+| send-referral-email | 5 tests |
+| Integration tests | 5 tests |
+| Security tests | 10 tests |
+| **Total** | **~92 tests** |
+
+---
+
+## Implementation Order
+
+1. Create test utilities and setup files
+2. Implement `analyze-ats` tests (simplest function)
+3. Implement `parse-pdf` tests
+4. Implement `optimize-resume` tests
+5. Implement `search-jobs` tests
+6. Implement `create-checkout` tests
+7. Implement `stripe-webhook` tests
+8. Implement email function tests
+9. Implement integration tests
+10. Implement security tests
+11. Run full test suite and fix any issues
+
+This plan ensures comprehensive coverage of all edge functions with proper authentication, input validation, business logic, and security testing.
