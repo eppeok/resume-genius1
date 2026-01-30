@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Sparkles, TrendingUp } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertCircle, Sparkles, TrendingUp, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ResumeMatchPreviewProps {
@@ -197,6 +197,27 @@ export function ResumeMatchPreview({ resume, jobDescription }: ResumeMatchPrevie
                 <span className="text-sm font-medium text-foreground">
                   Resume Match Preview
                 </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-muted-foreground hover:text-foreground transition-colors">
+                        <Info className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-left">
+                      <p className="font-medium mb-1">What does this score mean?</p>
+                      <ul className="text-xs space-y-1 text-muted-foreground">
+                        <li><span className="text-destructive font-medium">0-39%:</span> Major keyword gaps — unlikely to pass ATS filters</li>
+                        <li><span className="text-warning font-medium">40-59%:</span> Some alignment — needs more relevant keywords</li>
+                        <li><span className="text-success font-medium">60-79%:</span> Good match — likely to pass basic ATS screening</li>
+                        <li><span className="text-success font-medium">80-100%:</span> Excellent — strong keyword alignment</li>
+                      </ul>
+                      <p className="text-xs mt-2 text-muted-foreground">
+                        <strong>Tip:</strong> Add missing keywords naturally to your experience descriptions. Use our optimizer to automatically improve your match!
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 {isLoading && (
                   <span className="text-xs text-muted-foreground">(updating...)</span>
                 )}
