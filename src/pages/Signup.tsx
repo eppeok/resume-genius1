@@ -86,7 +86,7 @@ export default function Signup() {
           <Link to="/" className="flex items-center justify-center mb-4">
             <img src={logo} alt="EvolvXTalent" className="h-10 w-auto" />
           </Link>
-          <CardTitle className="text-2xl font-display">Create <span className="text-gradient">Account</span></CardTitle>
+          <CardTitle className="text-2xl font-display">Create Account</CardTitle>
           <CardDescription>Start optimizing your resume today</CardDescription>
         </CardHeader>
         <CardContent>

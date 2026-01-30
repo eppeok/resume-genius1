@@ -5,8 +5,8 @@
 @tailwind utilities;
 
 /* EvolvXTalent Design System
-   Modern SaaS aesthetic with magenta-to-blue gradient palette (matching logo)
-   Primary: #e107c6 (magenta) → #0d64ce (blue)
+   Modern SaaS aesthetic with blue primary and magenta-to-blue gradient accent
+   Primary: #0d64ce (blue), Gradient accent: #e107c6 → #0d64ce
 */
 
 @layer base {
@@ -21,19 +21,19 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 10%;
 
-    /* Primary - Vibrant magenta (from logo #e107c6) */
-    --primary: 310 97% 46%;
+    /* Primary - Professional blue (#0d64ce) */
+    --primary: 213 89% 43%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft lavender tint */
-    --secondary: 280 30% 96%;
-    --secondary-foreground: 310 50% 35%;
+    /* Secondary - Soft blue tint */
+    --secondary: 213 30% 96%;
+    --secondary-foreground: 213 50% 35%;
 
     --muted: 220 20% 94%;
     --muted-foreground: 220 10% 45%;
 
-    /* Accent - Electric blue (from logo #0d64ce) */
-    --accent: 213 89% 43%;
+    /* Accent - Vibrant magenta (for gradient accents) */
+    --accent: 310 97% 46%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -41,7 +41,7 @@
 
     --border: 220 20% 90%;
     --input: 220 20% 90%;
-    --ring: 310 97% 46%;
+    --ring: 213 89% 43%;
 
     --radius: 0.75rem;
 
@@ -53,27 +53,27 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Gradients - matching logo "Talent" text gradient */
+    /* Gradients - matching logo "Talent" text gradient (accent use only) */
     --gradient-primary: linear-gradient(180deg, hsl(310 97% 46%) 0%, hsl(213 89% 43%) 100%);
     --gradient-accent: linear-gradient(135deg, hsl(310 97% 46%) 0%, hsl(270 80% 50%) 50%, hsl(213 89% 43%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(280 30% 99%) 0%, hsl(260 35% 97%) 50%, hsl(220 30% 96%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(280 20% 99%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(213 30% 99%) 0%, hsl(220 35% 97%) 50%, hsl(220 30% 96%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(213 20% 99%) 100%);
 
     /* Shadows with brand tint */
-    --shadow-sm: 0 1px 2px 0 hsl(260 50% 20% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(260 50% 20% / 0.08), 0 2px 4px -2px hsl(260 50% 20% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(260 50% 20% / 0.1), 0 4px 6px -4px hsl(260 50% 20% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(260 50% 20% / 0.12), 0 8px 10px -6px hsl(260 50% 20% / 0.05);
-    --shadow-glow: 0 0 50px hsl(310 97% 46% / 0.25);
+    --shadow-sm: 0 1px 2px 0 hsl(213 50% 20% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(213 50% 20% / 0.08), 0 2px 4px -2px hsl(213 50% 20% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(213 50% 20% / 0.1), 0 4px 6px -4px hsl(213 50% 20% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(213 50% 20% / 0.12), 0 8px 10px -6px hsl(213 50% 20% / 0.05);
+    --shadow-glow: 0 0 50px hsl(213 89% 43% / 0.25);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 220 10% 26%;
-    --sidebar-primary: 310 97% 46%;
+    --sidebar-primary: 213 89% 43%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 30% 96%;
-    --sidebar-accent-foreground: 310 50% 35%;
+    --sidebar-accent: 213 30% 96%;
+    --sidebar-accent-foreground: 213 50% 35%;
     --sidebar-border: 220 20% 92%;
-    --sidebar-ring: 310 97% 46%;
+    --sidebar-ring: 213 89% 43%;
   }
 
   .dark {
@@ -86,16 +86,16 @@
     --popover: 220 18% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 310 90% 55%;
+    --primary: 213 85% 55%;
     --primary-foreground: 220 20% 8%;
 
-    --secondary: 280 15% 18%;
-    --secondary-foreground: 280 30% 85%;
+    --secondary: 213 15% 18%;
+    --secondary-foreground: 213 30% 85%;
 
     --muted: 220 15% 20%;
     --muted-foreground: 220 15% 60%;
 
-    --accent: 213 85% 55%;
+    --accent: 310 90% 55%;
     --accent-foreground: 220 20% 8%;
 
     --destructive: 0 62.8% 50%;
@@ -103,7 +103,7 @@
 
     --border: 220 15% 20%;
     --input: 220 15% 20%;
-    --ring: 310 90% 55%;
+    --ring: 213 85% 55%;
 
     --success: 158 64% 50%;
     --success-foreground: 220 20% 8%;
@@ -113,17 +113,17 @@
     --warning-foreground: 220 20% 8%;
 
     --gradient-primary: linear-gradient(180deg, hsl(310 90% 55%) 0%, hsl(213 85% 55%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(220 20% 8%) 0%, hsl(260 20% 12%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(220 18% 12%) 0%, hsl(260 15% 14%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(220 20% 8%) 0%, hsl(220 20% 12%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(220 18% 12%) 0%, hsl(213 15% 14%) 100%);
 
     --sidebar-background: 220 18% 10%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 310 90% 55%;
+    --sidebar-primary: 213 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 15% 18%;
-    --sidebar-accent-foreground: 280 30% 85%;
+    --sidebar-accent: 213 15% 18%;
+    --sidebar-accent-foreground: 213 30% 85%;
     --sidebar-border: 220 15% 18%;
-    --sidebar-ring: 310 90% 55%;
+    --sidebar-ring: 213 85% 55%;
   }
 }
 

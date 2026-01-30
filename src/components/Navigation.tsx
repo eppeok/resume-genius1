@@ -45,7 +45,7 @@ export function Navigation() {
                 </Button>
               </Link>
               
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-primary text-primary-foreground text-sm font-medium">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium">
                 <CreditCard className="h-4 w-4" />
                 <span>{profile?.credits ?? 0} credits</span>
               </div>
