@@ -4,6 +4,7 @@
 const ALLOWED_ORIGINS = [
   "https://resume-genius1.lovable.app",
   "https://id-preview--b35e338f-bffc-44f3-9115-efb92e2a0458.lovable.app",
+  "https://b35e338f-bffc-44f3-9115-efb92e2a0458.lovableproject.com",
   // Development origins
   "http://localhost:5173",
   "http://localhost:4173",
