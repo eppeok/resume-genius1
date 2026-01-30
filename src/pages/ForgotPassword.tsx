@@ -55,7 +55,7 @@ export default function ForgotPassword() {
           <Link to="/" className="flex items-center justify-center mb-4">
             <img src={logo} alt="EvolvXTalent" className="h-10 w-auto" />
           </Link>
-          <CardTitle className="text-2xl font-display">Reset <span className="text-gradient">Password</span></CardTitle>
+          <CardTitle className="text-2xl font-display">Reset Password</CardTitle>
           <CardDescription>
             {isSubmitted 
               ? "Check your email for the reset link" 
