@@ -8,6 +8,7 @@ import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle, Mail, P
 import { parseResumeFile, getSupportedFileTypes } from "@/lib/parseResume";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { ResumeMatchPreview } from "@/components/ResumeMatchPreview";
 
 interface ResumeFormProps {
   onSubmit: (data: FormData) => void;
@@ -300,6 +301,12 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
               className="min-h-[200px] bg-background resize-y font-mono text-sm"
             />
           </div>
+          
+          {/* Resume Match Preview */}
+          <ResumeMatchPreview 
+            resume={formData.currentResume} 
+            jobDescription={formData.jobDescription} 
+          />
         </CardContent>
       </Card>
 

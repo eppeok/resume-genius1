@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.search-jobs]
 verify_jwt = false
+
+[functions.quick-match-score]
+verify_jwt = false
