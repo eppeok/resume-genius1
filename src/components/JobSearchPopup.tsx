@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { searchJobs, type JobResult } from "@/lib/api/jobs";
 import { JobResultsList } from "@/components/JobResultsList";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
 interface JobSearchPopupProps {
   open: boolean;
@@ -156,18 +157,18 @@ export function JobSearchPopup({
                   <MapPin className="h-3.5 w-3.5" />
                   Location
                 </Label>
-                <Input
+                <LocationAutocomplete
                   id="location"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g., Bangalore, India"
+                  onChange={setLocation}
+                  placeholder="e.g., San Francisco, CA"
                   maxLength={200}
                 />
               </div>
 
               <div className="text-xs text-muted-foreground">
                 <Sparkles className="h-3 w-3 inline mr-1" />
-                We'll search LinkedIn, Indeed, Naukri, and other job boards based on your location.
+                We'll search LinkedIn, Indeed, Glassdoor, and other job boards based on your location.
               </div>
             </div>
 
