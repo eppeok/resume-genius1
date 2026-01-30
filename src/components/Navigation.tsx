@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { LogOut, User, CreditCard, History, Sparkles, Settings, Shield } from "lucide-react";
+import { LogOut, User, CreditCard, History, Sparkles, Settings, Shield, Briefcase } from "lucide-react";
 import logo from "@/assets/logo.png";
 import {
   DropdownMenu,
@@ -36,6 +36,12 @@ export function Navigation() {
                 <Button variant="ghost" size="sm" className="gap-2">
                   <Sparkles className="h-4 w-4" />
                   Optimize
+                </Button>
+              </Link>
+              <Link to="/jobs">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Briefcase className="h-4 w-4" />
+                  Jobs
                 </Button>
               </Link>
               

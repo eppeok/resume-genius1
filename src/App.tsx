@@ -23,6 +23,7 @@ import UserManagement from "./pages/admin/UserManagement";
 import CouponManagement from "./pages/admin/CouponManagement";
 import ActivityLogs from "./pages/admin/ActivityLogs";
 import NotFound from "./pages/NotFound";
+import Jobs from "./pages/Jobs";
 
 const App = () => {
   const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
             <Route path="/transactions" element={<ProtectedRoute><TransactionHistory /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+            <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
             <Route path="/admin/coupons" element={<AdminRoute><CouponManagement /></AdminRoute>} />

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ATSScoreCard } from "@/components/ATSScoreCard";
 import { ScoreBreakdown } from "@/components/ScoreBreakdown";
 import { EditableResumeContent } from "@/components/EditableResumeContent";
+import { JobSearchPopup } from "@/components/JobSearchPopup";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,7 @@ import { generatePDF, downloadPDF, TemplateName } from "@/pdf/PDFGenerator";
 import { SafeMarkdown } from "@/components/SafeMarkdown";
 import {
   FileCheck, Download, Copy, RefreshCw,
-  Loader2, TrendingUp, Sparkles, AlertCircle, Save, Check
+  Loader2, TrendingUp, Sparkles, AlertCircle, Save, Check, Briefcase
 } from "lucide-react";
 
 interface ATSScores {
@@ -44,6 +45,7 @@ export default function Optimize() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showJobSearchPopup, setShowJobSearchPopup] = useState(false);
   
 
   const analyzeResume = async (resume: string, jobDescription: string): Promise<ATSScores> => {
@@ -313,6 +315,11 @@ export default function Optimize() {
     setEditedResume("");
     setSavedResumeId(null);
     setHasUnsavedChanges(false);
+    setShowJobSearchPopup(false);
+  };
+
+  const handleJobSearchCreditsUpdated = async () => {
+    await refreshProfile();
   };
 
   return (
@@ -504,6 +511,23 @@ export default function Optimize() {
               </CardContent>
             </Card>
 
+            {/* Find Jobs CTA */}
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="flex items-center justify-between py-4 gap-4">
+                <div className="flex items-center gap-3">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  <div>
+                    <p className="font-medium">Find matching job openings</p>
+                    <p className="text-sm text-muted-foreground">Search for jobs that match your optimized profile</p>
+                  </div>
+                </div>
+                <Button onClick={() => setShowJobSearchPopup(true)}>
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Find Jobs
+                </Button>
+              </CardContent>
+            </Card>
+
             <Button variant="secondary" size="lg" onClick={handleReset} className="w-full">
               <RefreshCw className="h-4 w-4" />
               Optimize Another Resume
@@ -511,6 +535,16 @@ export default function Optimize() {
 
           </div>
         )}
+
+        {/* Job Search Popup */}
+        <JobSearchPopup
+          open={showJobSearchPopup}
+          onOpenChange={setShowJobSearchPopup}
+          targetRole={formData?.targetRole || ""}
+          location={formData?.location || profile?.location || ""}
+          resumeId={savedResumeId || undefined}
+          onCreditsUpdated={handleJobSearchCreditsUpdated}
+        />
       </div>
     </div>
   );
