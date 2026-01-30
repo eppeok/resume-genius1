@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookmarked_jobs: {
+        Row: {
+          apply_url: string
+          company: string
+          created_at: string
+          description: string | null
+          highlights: string[] | null
+          id: string
+          job_title: string
+          location: string
+          match_score: number | null
+          notes: string | null
+          posted_date: string | null
+          salary: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          apply_url: string
+          company: string
+          created_at?: string
+          description?: string | null
+          highlights?: string[] | null
+          id?: string
+          job_title: string
+          location: string
+          match_score?: number | null
+          notes?: string | null
+          posted_date?: string | null
+          salary?: string | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          apply_url?: string
+          company?: string
+          created_at?: string
+          description?: string | null
+          highlights?: string[] | null
+          id?: string
+          job_title?: string
+          location?: string
+          match_score?: number | null
+          notes?: string | null
+          posted_date?: string | null
+          salary?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarked_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coupon_redemptions: {
         Row: {
           coupon_id: string

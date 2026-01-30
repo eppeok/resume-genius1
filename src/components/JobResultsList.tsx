@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { JobCard } from "@/components/JobCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, SlidersHorizontal, Briefcase } from "lucide-react";
 import type { JobResult } from "@/lib/api/jobs";
+import { getBookmarkedUrls } from "@/lib/api/bookmarks";
 import {
   Select,
   SelectContent,
@@ -26,6 +27,27 @@ export function JobResultsList({ jobs, isLoading, sourcesSearched }: JobResultsL
   const [searchFilter, setSearchFilter] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [bookmarkedUrls, setBookmarkedUrls] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const loadBookmarks = async () => {
+      const urls = await getBookmarkedUrls();
+      setBookmarkedUrls(urls);
+    };
+    loadBookmarks();
+  }, []);
+
+  const handleBookmarkChange = (applyUrl: string, isBookmarked: boolean) => {
+    setBookmarkedUrls((prev) => {
+      const next = new Set(prev);
+      if (isBookmarked) {
+        next.add(applyUrl);
+      } else {
+        next.delete(applyUrl);
+      }
+      return next;
+    });
+  };
 
   const filteredJobs = jobs
     .filter((job) => {
@@ -157,7 +179,12 @@ export function JobResultsList({ jobs, isLoading, sourcesSearched }: JobResultsL
       {/* Job Cards */}
       <div className="grid gap-4">
         {filteredJobs.map((job, index) => (
-          <JobCard key={`${job.applyUrl}-${index}`} job={job} />
+          <JobCard 
+            key={`${job.applyUrl}-${index}`} 
+            job={job} 
+            isBookmarked={bookmarkedUrls.has(job.applyUrl)}
+            onBookmarkChange={handleBookmarkChange}
+          />
         ))}
       </div>
 
