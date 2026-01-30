@@ -3,40 +3,52 @@ import { Input } from "@/components/ui/input";
 import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Popular US cities and metro areas
-const US_LOCATIONS = [
+// Popular cities globally (US first, then international)
+const LOCATIONS = [
+  // US Cities
   "New York, NY",
   "Los Angeles, CA",
-  "Chicago, IL",
-  "Houston, TX",
-  "Phoenix, AZ",
-  "Philadelphia, PA",
-  "San Antonio, TX",
-  "San Diego, CA",
-  "Dallas, TX",
-  "San Jose, CA",
-  "Austin, TX",
-  "Jacksonville, FL",
-  "Fort Worth, TX",
-  "Columbus, OH",
-  "Charlotte, NC",
   "San Francisco, CA",
-  "Indianapolis, IN",
+  "Chicago, IL",
   "Seattle, WA",
-  "Denver, CO",
+  "Austin, TX",
   "Boston, MA",
-  "Nashville, TN",
-  "Detroit, MI",
-  "Portland, OR",
-  "Las Vegas, NV",
-  "Memphis, TN",
+  "Denver, CO",
   "Atlanta, GA",
   "Miami, FL",
+  "Dallas, TX",
+  "San Diego, CA",
+  "Phoenix, AZ",
+  "Portland, OR",
+  "Nashville, TN",
   "Raleigh, NC",
-  "Tampa, FL",
+  "Charlotte, NC",
   "Minneapolis, MN",
+  // Canada
+  "Toronto, Canada",
+  "Vancouver, Canada",
+  "Montreal, Canada",
+  // UK & Europe
+  "London, UK",
+  "Berlin, Germany",
+  "Amsterdam, Netherlands",
+  "Dublin, Ireland",
+  "Paris, France",
+  "Zurich, Switzerland",
+  // Asia Pacific
+  "Singapore",
+  "Sydney, Australia",
+  "Melbourne, Australia",
+  "Tokyo, Japan",
+  "Bangalore, India",
+  "Mumbai, India",
+  "Dubai, UAE",
+  "Hong Kong",
+  // Remote options
   "Remote",
   "Remote - US",
+  "Remote - Europe",
+  "Remote - Worldwide",
   "Hybrid",
 ];
 
@@ -63,7 +75,7 @@ export function LocationAutocomplete({
 
   useEffect(() => {
     if (value.length > 0) {
-      const filtered = US_LOCATIONS.filter((location) =>
+      const filtered = LOCATIONS.filter((location) =>
         location.toLowerCase().includes(value.toLowerCase())
       ).slice(0, 6);
       setFilteredLocations(filtered);
