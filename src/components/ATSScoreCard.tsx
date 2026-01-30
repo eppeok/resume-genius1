@@ -37,6 +37,12 @@ export function ATSScoreCard({ score, label, variant = "before", size = "lg" }: 
     <div className="flex flex-col items-center gap-2">
       <div className={cn("relative", sizeClasses[size])}>
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="hsl(310 97% 46%)" />
+              <stop offset="100%" stopColor="hsl(213 89% 43%)" />
+            </linearGradient>
+          </defs>
           <circle
             cx="50"
             cy="50"
@@ -53,7 +59,8 @@ export function ATSScoreCard({ score, label, variant = "before", size = "lg" }: 
             fill="none"
             strokeWidth="8"
             strokeLinecap="round"
-            className={cn(getStrokeColor(score), "transition-all duration-1000 ease-out")}
+            stroke={score >= 60 ? "url(#scoreGradient)" : undefined}
+            className={cn(score < 60 && getStrokeColor(score), "transition-all duration-1000 ease-out")}
             style={{
               strokeDasharray: circumference,
               strokeDashoffset: strokeDashoffset,

@@ -130,7 +130,7 @@ const Index = () => {
           
           <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight mb-6">
             Land More Interviews with an{" "}
-            <span className="text-primary">ATS-Optimized</span> Resume
+            <span className="text-gradient">ATS-Optimized</span> Resume
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
@@ -163,7 +163,7 @@ const Index = () => {
         <div className="grid grid-cols-3 gap-8">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2">
+              <div className="text-3xl md:text-4xl font-bold text-gradient mb-2">
                 {stat.value}
               </div>
               <div className="text-sm text-muted-foreground">{stat.label}</div>
@@ -213,7 +213,7 @@ const Index = () => {
             { step: 4, title: "Download & Apply", description: "Export as PDF and start applying with confidence" },
           ].map((item) => (
             <div key={item.step} className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center font-bold">
                 {item.step}
               </div>
               <div>
@@ -231,7 +231,7 @@ const Index = () => {
           <CardContent className="py-12 text-center">
             <Award className="h-12 w-12 text-primary mx-auto mb-4" />
             <h2 className="text-2xl md:text-3xl font-display font-bold mb-4">
-              Ready to Land Your Dream Job?
+              Ready to Land Your <span className="text-gradient">Dream Job</span>?
             </h2>
             <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
               Join thousands of job seekers who have improved their resume scores 
