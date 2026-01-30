@@ -1,13 +1,16 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JobResultsList } from "@/components/JobResultsList";
+import { BookmarkedJobCard } from "@/components/BookmarkedJobCard";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +21,7 @@ import {
   type JobResult, 
   type JobSearchHistory 
 } from "@/lib/api/jobs";
-import { getRegionalJobBoards, formatJobBoardsList } from "@/lib/jobBoardUtils";
+import { getBookmarkedJobs, type BookmarkedJob } from "@/lib/api/bookmarks";
 import { 
   Briefcase, 
   Search, 
@@ -28,7 +31,8 @@ import {
   History, 
   Trash2,
   AlertCircle,
-  ChevronRight
+  ChevronRight,
+  Bookmark
 } from "lucide-react";
 import {
   AlertDialog,
@@ -46,6 +50,7 @@ export default function Jobs() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState("search");
   const [targetRole, setTargetRole] = useState("");
   const [location, setLocation] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -59,8 +64,12 @@ export default function Jobs() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const [bookmarkedJobs, setBookmarkedJobs] = useState<BookmarkedJob[]>([]);
+  const [isLoadingBookmarks, setIsLoadingBookmarks] = useState(true);
+
   useEffect(() => {
     loadSearchHistory();
+    loadBookmarks();
     // Pre-fill location from profile
     if (profile?.location) {
       setLocation(profile.location);
@@ -76,6 +85,21 @@ export default function Jobs() {
     } finally {
       setIsLoadingHistory(false);
     }
+  };
+
+  const loadBookmarks = async () => {
+    try {
+      const bookmarks = await getBookmarkedJobs();
+      setBookmarkedJobs(bookmarks);
+    } catch (error) {
+      console.error("Failed to load bookmarks:", error);
+    } finally {
+      setIsLoadingBookmarks(false);
+    }
+  };
+
+  const handleBookmarkRemoved = (id: string) => {
+    setBookmarkedJobs((prev) => prev.filter((job) => job.id !== id));
   };
 
   const handleSearch = async () => {
@@ -183,7 +207,7 @@ export default function Jobs() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gradient-hero flex flex-col">
       <SEO 
         title="Find Jobs"
         description="Find relevant job openings based on your resume profile. AI-powered job matching from LinkedIn, Indeed, Glassdoor and more."
@@ -191,190 +215,261 @@ export default function Jobs() {
       />
       <Navigation />
 
-      <div className="container max-w-6xl py-8 px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-display font-bold mb-2 flex items-center justify-center gap-2">
-            <Briefcase className="h-8 w-8 text-primary" />
-            Find Your Next Opportunity
-          </h1>
-          <p className="text-muted-foreground">
-            Search for jobs matching your profile • You have {profile?.credits ?? 0} credits
-          </p>
-        </div>
+      <main className="flex-1">
+        <div className="container max-w-6xl py-8 px-4">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-display font-bold mb-2 flex items-center justify-center gap-2">
+              <Briefcase className="h-8 w-8 text-primary" />
+              Find Your Next Opportunity
+            </h1>
+            <p className="text-muted-foreground">
+              Search for jobs matching your profile • You have {profile?.credits ?? 0} credits
+            </p>
+          </div>
 
-        {/* Low credits warning */}
-        {profile && profile.credits < 2 && (
-          <Card className="mb-6 border-warning/50 bg-warning/10">
-            <CardContent className="flex items-center gap-4 py-4">
-              <AlertCircle className="h-5 w-5 text-warning" />
-              <div className="flex-1">
-                <p className="font-medium">Insufficient credits</p>
-                <p className="text-sm text-muted-foreground">You need at least 2 credits to search for jobs</p>
-              </div>
-              <Button variant="outline" onClick={() => navigate("/credits")}>
-                Buy Credits
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Search Panel */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Search Form */}
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Search className="h-5 w-5 text-primary" />
-                  New Search
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="targetRole">Target Role</Label>
-                  <Input
-                    id="targetRole"
-                    value={targetRole}
-                    onChange={(e) => setTargetRole(e.target.value)}
-                    placeholder="e.g., Senior Software Engineer"
-                    maxLength={200}
-                  />
+          {/* Low credits warning */}
+          {profile && profile.credits < 2 && (
+            <Card className="mb-6 border-warning/50 bg-warning/10">
+              <CardContent className="flex items-center gap-4 py-4">
+                <AlertCircle className="h-5 w-5 text-warning" />
+                <div className="flex-1">
+                  <p className="font-medium">Insufficient credits</p>
+                  <p className="text-sm text-muted-foreground">You need at least 2 credits to search for jobs</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    Location
-                  </Label>
-                  <LocationAutocomplete
-                    id="location"
-                    value={location}
-                    onChange={setLocation}
-                    placeholder="e.g., San Francisco, CA"
-                    maxLength={200}
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10 text-sm">
-                  <CreditCard className="h-4 w-4 text-primary flex-shrink-0" />
-                  <span>Each search costs <strong>2 credits</strong></span>
-                </div>
-
-                <Button 
-                  onClick={handleSearch} 
-                  disabled={isSearching || !profile || profile.credits < 2}
-                  className="w-full"
-                >
-                  {isSearching ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="mr-2 h-4 w-4" />
-                      Search Jobs
-                    </>
-                  )}
+                <Button variant="outline" onClick={() => navigate("/credits")}>
+                  Buy Credits
                 </Button>
               </CardContent>
             </Card>
+          )}
 
-            {/* Search History */}
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <History className="h-5 w-5 text-muted-foreground" />
-                  Recent Searches
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {isLoadingHistory ? (
-                  <div className="space-y-2">
-                    <Skeleton className="h-16 w-full" />
-                    <Skeleton className="h-16 w-full" />
-                  </div>
-                ) : searchHistory.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No search history yet
-                  </p>
-                ) : (
-                  searchHistory.slice(0, 5).map((history) => (
-                    <div
-                      key={history.id}
-                      className={`group flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                        selectedHistory?.id === history.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border/50 hover:bg-secondary/50"
-                      }`}
-                      onClick={() => handleHistoryClick(history)}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{history.search_query}</p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {history.location} • {formatDate(history.created_at)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {history.job_results.length} jobs found
-                        </p>
+          {/* Main Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="search" className="gap-2">
+                <Search className="h-4 w-4" />
+                Search Jobs
+              </TabsTrigger>
+              <TabsTrigger value="bookmarks" className="gap-2">
+                <Bookmark className="h-4 w-4" />
+                Saved Jobs
+                {bookmarkedJobs.length > 0 && (
+                  <span className="ml-1 bg-primary/20 text-primary text-xs px-1.5 py-0.5 rounded-full">
+                    {bookmarkedJobs.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="search">
+              <div className="grid lg:grid-cols-3 gap-6">
+                {/* Search Panel */}
+                <div className="lg:col-span-1 space-y-6">
+                  {/* Search Form */}
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Search className="h-5 w-5 text-primary" />
+                        New Search
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="targetRole">Target Role</Label>
+                        <Input
+                          id="targetRole"
+                          value={targetRole}
+                          onChange={(e) => setTargetRole(e.target.value)}
+                          placeholder="e.g., Senior Software Engineer"
+                          maxLength={200}
+                        />
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingId(history.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                        </Button>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <div className="space-y-2">
+                        <Label htmlFor="location" className="flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5" />
+                          Location
+                        </Label>
+                        <LocationAutocomplete
+                          id="location"
+                          value={location}
+                          onChange={setLocation}
+                          placeholder="e.g., San Francisco, CA"
+                          maxLength={200}
+                        />
                       </div>
+
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10 text-sm">
+                        <CreditCard className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span>Each search costs <strong>2 credits</strong></span>
+                      </div>
+
+                      <Button 
+                        onClick={handleSearch} 
+                        disabled={isSearching || !profile || profile.credits < 2}
+                        className="w-full"
+                      >
+                        {isSearching ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Searching...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="mr-2 h-4 w-4" />
+                            Search Jobs
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Search History */}
+                  <Card className="border-border/50">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <History className="h-5 w-5 text-muted-foreground" />
+                        Recent Searches
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {isLoadingHistory ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-16 w-full" />
+                          <Skeleton className="h-16 w-full" />
+                        </div>
+                      ) : searchHistory.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No search history yet
+                        </p>
+                      ) : (
+                        searchHistory.slice(0, 5).map((history) => (
+                          <div
+                            key={history.id}
+                            className={`group flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                              selectedHistory?.id === history.id
+                                ? "border-primary bg-primary/5"
+                                : "border-border/50 hover:bg-secondary/50"
+                            }`}
+                            onClick={() => handleHistoryClick(history)}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{history.search_query}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {history.location} • {formatDate(history.created_at)}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {history.job_results.length} jobs found
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeletingId(history.id);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Results Panel */}
+                <div className="lg:col-span-2">
+                  <Card className="border-border/50 min-h-[400px]">
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {hasSearched 
+                          ? selectedHistory 
+                            ? `Results from ${formatDate(selectedHistory.created_at)}`
+                            : "Search Results"
+                          : "Job Listings"
+                        }
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {isSearching ? (
+                        <JobResultsList jobs={[]} isLoading={true} />
+                      ) : hasSearched ? (
+                        <JobResultsList 
+                          jobs={jobs} 
+                          sourcesSearched={sourcesSearched}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                          <Briefcase className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">Ready to find your next job?</h3>
+                          <p className="text-muted-foreground max-w-md">
+                            Enter your target role and location to search for relevant job openings from LinkedIn, Indeed, Glassdoor, and more.
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="bookmarks">
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Bookmark className="h-5 w-5 text-primary" />
+                    Saved Jobs
+                    {bookmarkedJobs.length > 0 && (
+                      <span className="text-sm font-normal text-muted-foreground">
+                        ({bookmarkedJobs.length} saved)
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingBookmarks ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-48 w-full" />
+                      <Skeleton className="h-48 w-full" />
                     </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Results Panel */}
-          <div className="lg:col-span-2">
-            <Card className="border-border/50 min-h-[400px]">
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  {hasSearched 
-                    ? selectedHistory 
-                      ? `Results from ${formatDate(selectedHistory.created_at)}`
-                      : "Search Results"
-                    : "Job Listings"
-                  }
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isSearching ? (
-                  <JobResultsList jobs={[]} isLoading={true} />
-                ) : hasSearched ? (
-                  <JobResultsList 
-                    jobs={jobs} 
-                    sourcesSearched={sourcesSearched}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <Briefcase className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Ready to find your next job?</h3>
-                    <p className="text-muted-foreground max-w-md">
-                      Enter your target role and location to search for relevant job openings from LinkedIn, Indeed, Glassdoor, and more.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  ) : bookmarkedJobs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <Bookmark className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No saved jobs yet</h3>
+                      <p className="text-muted-foreground max-w-md mb-4">
+                        When you find interesting jobs in your search results, click the bookmark icon to save them here for later.
+                      </p>
+                      <Button variant="outline" onClick={() => setActiveTab("search")}>
+                        <Search className="mr-2 h-4 w-4" />
+                        Start Searching
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
+                      {bookmarkedJobs.map((job) => (
+                        <BookmarkedJobCard 
+                          key={job.id} 
+                          job={job} 
+                          onRemove={handleBookmarkRemoved}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
-      </div>
+      </main>
+
+      <Footer />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

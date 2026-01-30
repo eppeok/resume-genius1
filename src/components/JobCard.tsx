@@ -1,14 +1,23 @@
-import { ExternalLink, MapPin, Building2, DollarSign, Star } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, MapPin, Building2, DollarSign, Star, Bookmark, BookmarkCheck, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { bookmarkJob, removeBookmark } from "@/lib/api/bookmarks";
 import type { JobResult } from "@/lib/api/jobs";
 
 interface JobCardProps {
   job: JobResult;
+  isBookmarked?: boolean;
+  onBookmarkChange?: (applyUrl: string, isBookmarked: boolean) => void;
 }
 
-export function JobCard({ job }: JobCardProps) {
+export function JobCard({ job, isBookmarked = false, onBookmarkChange }: JobCardProps) {
+  const { toast } = useToast();
+  const [bookmarked, setBookmarked] = useState(isBookmarked);
+  const [isBookmarking, setIsBookmarking] = useState(false);
+
   const getMatchColor = (score: number) => {
     if (score >= 80) return "bg-success/10 text-success border-success/30";
     if (score >= 60) return "bg-warning/10 text-warning border-warning/30";
@@ -28,6 +37,39 @@ export function JobCard({ job }: JobCardProps) {
     }
   };
 
+  const handleBookmark = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsBookmarking(true);
+    
+    try {
+      if (bookmarked) {
+        await removeBookmark(job.applyUrl);
+        setBookmarked(false);
+        onBookmarkChange?.(job.applyUrl, false);
+        toast({
+          title: "Removed",
+          description: "Job removed from bookmarks",
+        });
+      } else {
+        await bookmarkJob(job);
+        setBookmarked(true);
+        onBookmarkChange?.(job.applyUrl, true);
+        toast({
+          title: "Saved!",
+          description: "Job saved to your bookmarks",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update bookmark",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBookmarking(false);
+    }
+  };
+
   return (
     <Card className="group hover:shadow-elevated transition-all duration-200 border-border/50">
       <CardContent className="p-5">
@@ -43,9 +85,26 @@ export function JobCard({ job }: JobCardProps) {
                   <span className="truncate">{job.company}</span>
                 </div>
               </div>
-              <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-sm font-medium ${getMatchColor(job.matchScore)}`}>
-                <Star className="h-3.5 w-3.5" />
-                <span>{job.matchScore}%</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 ${bookmarked ? "text-primary" : "text-muted-foreground hover:text-primary"}`}
+                  onClick={handleBookmark}
+                  disabled={isBookmarking}
+                >
+                  {isBookmarking ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : bookmarked ? (
+                    <BookmarkCheck className="h-4 w-4 fill-current" />
+                  ) : (
+                    <Bookmark className="h-4 w-4" />
+                  )}
+                </Button>
+                <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-sm font-medium ${getMatchColor(job.matchScore)}`}>
+                  <Star className="h-3.5 w-3.5" />
+                  <span>{job.matchScore}%</span>
+                </div>
               </div>
             </div>
 
