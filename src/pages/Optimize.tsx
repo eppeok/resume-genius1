@@ -511,19 +511,23 @@ export default function Optimize() {
               </CardContent>
             </Card>
 
-            {/* Find Jobs CTA */}
-            <Card className="border-primary/30 bg-primary/5">
-              <CardContent className="flex items-center justify-between py-4 gap-4">
-                <div className="flex items-center gap-3">
-                  <Briefcase className="h-5 w-5 text-primary" />
+            {/* Find Jobs CTA - Prominent */}
+            <Card className="border-2 border-primary bg-gradient-to-r from-primary/10 via-primary/5 to-transparent shadow-glow">
+              <CardContent className="flex flex-col md:flex-row items-center justify-between py-6 gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-primary/20">
+                    <Briefcase className="h-8 w-8 text-primary" />
+                  </div>
                   <div>
-                    <p className="font-medium">Find matching job openings</p>
-                    <p className="text-sm text-muted-foreground">Search for jobs that match your optimized profile</p>
+                    <h3 className="text-xl font-display font-semibold">Ready to Apply?</h3>
+                    <p className="text-muted-foreground">
+                      Search for matching job openings from LinkedIn, Indeed, and regional job boards worldwide
+                    </p>
                   </div>
                 </div>
-                <Button onClick={() => setShowJobSearchPopup(true)}>
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  Find Jobs
+                <Button size="lg" onClick={() => setShowJobSearchPopup(true)} className="gap-2 whitespace-nowrap">
+                  <Briefcase className="h-5 w-5" />
+                  Find Matching Jobs
                 </Button>
               </CardContent>
             </Card>
