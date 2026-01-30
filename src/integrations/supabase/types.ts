@@ -139,6 +139,54 @@ export type Database = {
           },
         ]
       }
+      job_searches: {
+        Row: {
+          created_at: string
+          id: string
+          job_results: Json
+          location: string | null
+          resume_id: string | null
+          search_query: string
+          sources_searched: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_results?: Json
+          location?: string | null
+          resume_id?: string | null
+          search_query: string
+          sources_searched?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_results?: Json
+          location?: string | null
+          resume_id?: string | null
+          search_query?: string
+          sources_searched?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_searches_resume_id_fkey"
+            columns: ["resume_id"]
+            isOneToOne: false
+            referencedRelation: "resumes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_searches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -341,6 +389,10 @@ export type Database = {
         Returns: boolean
       }
       deduct_credit: { Args: { p_user_id: string }; Returns: boolean }
+      deduct_job_search_credits: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
