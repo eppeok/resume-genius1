@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SEO } from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Loader2, Gift, Users, AlertCircle, CheckCircle } from "lucide-react";
+import { Loader2, Gift, Users, AlertCircle, CheckCircle } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { validatePassword, getPasswordStrength } from "@/lib/validation";
 
 export default function Signup() {
@@ -82,11 +83,8 @@ export default function Signup() {
       />
       <Card className="w-full max-w-md border-border/50 shadow-elevated">
         <CardHeader className="text-center">
-          <Link to="/" className="flex items-center justify-center gap-2 mb-4">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <FileText className="h-6 w-6 text-white" />
-            </div>
-            <span className="font-display font-bold text-2xl bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">EvolvXTalent</span>
+          <Link to="/" className="flex items-center justify-center mb-4">
+            <img src={logo} alt="EvolvXTalent" className="h-10 w-auto" />
           </Link>
           <CardTitle className="text-2xl font-display">Create Account</CardTitle>
           <CardDescription>Start optimizing your resume today</CardDescription>
