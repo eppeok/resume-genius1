@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { SEO } from "@/components/SEO";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobResultsList } from "@/components/JobResultsList";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -17,6 +18,7 @@ import {
   type JobResult, 
   type JobSearchHistory 
 } from "@/lib/api/jobs";
+import { getRegionalJobBoards, formatJobBoardsList } from "@/lib/jobBoardUtils";
 import { 
   Briefcase, 
   Search, 
@@ -184,7 +186,7 @@ export default function Jobs() {
     <div className="min-h-screen bg-gradient-hero">
       <SEO 
         title="Find Jobs"
-        description="Find relevant job openings based on your resume profile. AI-powered job matching from LinkedIn, Indeed, Naukri and more."
+        description="Find relevant job openings based on your resume profile. AI-powered job matching from LinkedIn, Indeed, Glassdoor and more."
         noIndex={true}
       />
       <Navigation />
@@ -244,11 +246,11 @@ export default function Jobs() {
                     <MapPin className="h-3.5 w-3.5" />
                     Location
                   </Label>
-                  <Input
+                  <LocationAutocomplete
                     id="location"
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Bangalore, India"
+                    onChange={setLocation}
+                    placeholder="e.g., San Francisco, CA"
                     maxLength={200}
                   />
                 </div>
@@ -364,7 +366,7 @@ export default function Jobs() {
                     <Briefcase className="h-12 w-12 text-muted-foreground/50 mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Ready to find your next job?</h3>
                     <p className="text-muted-foreground max-w-md">
-                      Enter your target role and location to search for relevant job openings from LinkedIn, Indeed, Naukri, and more.
+                      Enter your target role and location to search for relevant job openings from LinkedIn, Indeed, Glassdoor, and more.
                     </p>
                   </div>
                 )}
