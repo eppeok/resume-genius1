@@ -1,50 +1,81 @@
 
+# Consistent Margins & Golden Bullets for Professional Template
 
-# Fix PDF Parsing CORS Error
+## Overview
+This plan addresses two styling improvements for the Professional (Minimal) PDF template:
+1. Align body content margins to match the header's internal padding
+2. Add golden square bullets (■) to Certifications (and similar multi-line sections)
 
-## Problem Identified
-The PDF parsing is failing with "Unable to connect to server" because the CORS configuration in `supabase/functions/_shared/cors.ts` is missing headers that the Supabase client automatically includes in requests.
+## Current State
 
-When the browser sends a preflight (OPTIONS) request before the actual POST, the server's `Access-Control-Allow-Headers` must list ALL headers the client will send. The current config only allows:
-- `authorization`
-- `x-client-info`
-- `apikey`
-- `content-type`
+### Margins
+- **Page padding**: 72pt (1 inch) on all sides
+- **Header internal padding**: 24pt horizontal
+- **Body content**: Currently uses 0pt additional padding (just the page's 72pt)
 
-But the Supabase JavaScript client also sends:
-- `x-supabase-client-platform`
-- `x-supabase-client-platform-version`
-- `x-supabase-client-runtime`
-- `x-supabase-client-runtime-version`
+The header visually appears to have different margins because its background extends edge-to-edge while text is padded 24pt inside.
 
-When these headers aren't explicitly allowed, the browser blocks the request entirely (CORS policy violation), which manifests as "Failed to fetch".
+### Certifications
+- Currently uses the `CertificationItem` component with square bullets (■)
+- Already displays golden bullets, but this confirms correct implementation
 
-## Solution
-Update the shared CORS configuration to include all headers that the Supabase client sends. This will fix the parse-pdf function and any other function using the shared CORS file.
+## Proposed Changes
 
-## Changes Required
+### 1. Match Body Margins to Header
 
-### File: `supabase/functions/_shared/cors.ts`
-Update the `Access-Control-Allow-Headers` to include the additional Supabase client headers:
+Adjust the page padding and header offsets so the content area has the same visual alignment as the header text (24pt from the colored edge):
 
+| Area | Current | New |
+|------|---------|-----|
+| Page horizontal padding | 72pt | 48pt |
+| Header horizontal margin | -72pt | -48pt |
+| Header top margin | -72pt | -48pt |
+| Page top padding | 72pt | 48pt |
+
+This creates tighter margins (~0.67 inch) that match what the header appears to have visually.
+
+### 2. Golden Bullets Confirmation
+The Certifications section already uses golden square bullets (■) via the `CertificationItem` component. No changes needed unless other sections need similar treatment.
+
+## Files to Modify
+
+### `src/pdf/templates/MinimalTemplate.tsx`
+
+**Page styles (lines 6-17)**:
 ```typescript
-return {
-  "Access-Control-Allow-Origin": allowedOrigin,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Max-Age": "86400",
-};
+page: {
+  fontSize: 10,
+  fontFamily: "Helvetica",
+  lineHeight: 1.5,
+  backgroundColor: "#ffffff",
+  paddingTop: 48,      // Was 72
+  paddingBottom: 72,   // Keep bottom for page numbers if needed
+  paddingLeft: 48,     // Was 72
+  paddingRight: 48,    // Was 72
+},
 ```
+
+**Header band styles (lines 19-26)**:
+```typescript
+headerBand: {
+  backgroundColor: "#1e3a5f",
+  paddingHorizontal: 24,
+  paddingTop: 28,
+  paddingBottom: 24,
+  marginHorizontal: -48,  // Was -72 (matches new page padding)
+  marginTop: -48,         // Was -72
+},
+```
+
+## Visual Result
+- Body text will align with the header name/title text (both 24pt from the page edge visually)
+- The navy header band still extends edge-to-edge
+- Golden square bullets already appear on Certifications
 
 ## Technical Details
 
 | Aspect | Details |
 |--------|---------|
-| Root Cause | Missing CORS headers causing preflight failure |
-| Affected Functions | `parse-pdf` and any other function using `_shared/cors.ts` |
-| Fix Location | `supabase/functions/_shared/cors.ts` line 24 |
-| Risk Level | Low - additive change only |
-
-## Verification
-After this fix, uploading a PDF resume should successfully connect to the server and parse the file. The retry button will also work correctly for any subsequent attempts.
-
+| Files Changed | 1 (MinimalTemplate.tsx) |
+| Risk Level | Low - only affects PDF layout, no logic changes |
+| Affected Output | Professional template PDF downloads |
