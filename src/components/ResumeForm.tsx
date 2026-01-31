@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle, Mail, Phone, MapPin, Linkedin } from "lucide-react";
+import { User, Target, FileText, Sparkles, Upload, Loader2, CheckCircle, Mail, Phone, MapPin, Linkedin, RotateCcw, AlertCircle } from "lucide-react";
 import { parseResumeFile, getSupportedFileTypes } from "@/lib/parseResume";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +43,8 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
   });
   const [isParsingFile, setIsParsingFile] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [lastUploadedFile, setLastUploadedFile] = useState<File | null>(null);
+  const [parseError, setParseError] = useState<string | null>(null);
 
   // Auto-fill from profile on mount
   useEffect(() => {
@@ -65,32 +67,47 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const parseFile = async (file: File) => {
     setIsParsingFile(true);
     setUploadedFileName(null);
+    setParseError(null);
+    setLastUploadedFile(file);
 
     try {
       const text = await parseResumeFile(file);
       handleChange("currentResume", text);
       setUploadedFileName(file.name);
+      setLastUploadedFile(null); // Clear the stored file on success
       toast({
         title: "File uploaded",
         description: `Successfully extracted text from ${file.name}`,
       });
     } catch (error) {
       console.error("File parsing error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to read file";
+      setParseError(errorMessage);
       toast({
         title: "Error parsing file",
-        description: error instanceof Error ? error.message : "Failed to read file",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setIsParsingFile(false);
-      // Reset input so same file can be selected again
-      e.target.value = "";
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    await parseFile(file);
+    // Reset input so same file can be selected again
+    e.target.value = "";
+  };
+
+  const handleRetry = () => {
+    if (lastUploadedFile) {
+      parseFile(lastUploadedFile);
     }
   };
 
@@ -252,7 +269,7 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
           <CardDescription>Upload a file or paste your resume text</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <Label
               htmlFor="resumeFile"
               className={`flex items-center gap-2 px-4 py-2 border border-dashed rounded-lg cursor-pointer transition-colors ${
@@ -260,6 +277,8 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                   ? "border-primary bg-primary/5" 
                   : uploadedFileName
                   ? "border-success bg-success/5"
+                  : parseError
+                  ? "border-destructive bg-destructive/5"
                   : "border-border hover:bg-secondary/50"
               }`}
             >
@@ -272,6 +291,13 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
                 <>
                   <CheckCircle className="h-4 w-4 text-success" />
                   <span className="text-sm text-success">{uploadedFileName}</span>
+                </>
+              ) : parseError ? (
+                <>
+                  <AlertCircle className="h-4 w-4 text-destructive" />
+                  <span className="text-sm text-destructive">
+                    {lastUploadedFile?.name || "Upload failed"}
+                  </span>
                 </>
               ) : (
                 <>
@@ -290,7 +316,25 @@ export function ResumeForm({ onSubmit, isLoading }: ResumeFormProps) {
               className="hidden"
               disabled={isParsingFile}
             />
+            {parseError && lastUploadedFile && !isParsingFile && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRetry}
+                className="gap-1.5"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Retry
+              </Button>
+            )}
           </div>
+          {parseError && (
+            <p className="text-sm text-destructive flex items-start gap-1.5">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              {parseError}
+            </p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="currentResume">Resume Content *</Label>
             <Textarea
