@@ -9,11 +9,11 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica",
     lineHeight: 1.5,  // Increased from 1.4 for better spacing
     backgroundColor: "#ffffff",
-    // Standard 1-inch margins on ALL pages (72pt = 1 inch)
-    paddingTop: 72,
-    paddingBottom: 72,
-    paddingLeft: 72,
-    paddingRight: 72,
+    // Margins aligned with header's internal padding (48pt page + 24pt header = 72pt visual)
+    paddingTop: 48,
+    paddingBottom: 72,   // Keep bottom margin for page numbers
+    paddingLeft: 48,
+    paddingRight: 48,
   },
   // Navy header band
   headerBand: {
@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 28,
     paddingBottom: 24,
-    marginHorizontal: -72,  // Extend to page edges (negate page padding)
-    marginTop: -72,         // Extend to top edge
+    marginHorizontal: -48,  // Extend to page edges (negate page padding)
+    marginTop: -48,         // Extend to top edge
   },
   name: {
     fontSize: 24,
