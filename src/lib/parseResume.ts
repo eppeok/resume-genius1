@@ -45,30 +45,57 @@ async function parsePDFServerSide(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  // Call the edge function
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-pdf`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: formData,
+  // Get the Supabase URL from environment
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) {
+    throw new Error("Configuration error: Supabase URL not available");
+  }
+
+  // Call the edge function with timeout and error handling
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for PDF processing
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/parse-pdf`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
+        signal: controller.signal,
+      }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `Failed to parse PDF (${response.status})`);
     }
-  );
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Failed to parse PDF (${response.status})`);
+    const data = await response.json();
+    
+    if (!data.text) {
+      throw new Error("No text extracted from PDF");
+    }
+
+    return data.text;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error("PDF parsing timed out. Please try a smaller file.");
+      }
+      if (error.message === 'Failed to fetch') {
+        throw new Error("Unable to connect to the server. Please check your internet connection and try again.");
+      }
+      throw error;
+    }
+    throw new Error("An unexpected error occurred while parsing the PDF");
   }
-
-  const data = await response.json();
-  
-  if (!data.text) {
-    throw new Error("No text extracted from PDF");
-  }
-
-  return data.text;
 }
 
 export function getSupportedFileTypes(): string {
