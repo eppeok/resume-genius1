@@ -18,6 +18,15 @@ serve(async (req) => {
       );
     }
 
+    // Validate content-type header before trying to parse
+    const contentType = req.headers.get("content-type");
+    if (!contentType || !contentType.includes("multipart/form-data")) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request: Expected multipart/form-data" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get the file from the request
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
