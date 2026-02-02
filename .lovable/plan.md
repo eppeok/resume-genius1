@@ -1,81 +1,94 @@
 
-# Consistent Margins & Golden Bullets for Professional Template
 
-## Overview
-This plan addresses two styling improvements for the Professional (Minimal) PDF template:
-1. Align body content margins to match the header's internal padding
-2. Add golden square bullets (■) to Certifications (and similar multi-line sections)
+# Fix PDF Upload "Unable to Connect to Server" Error
 
-## Current State
+## Problem
+Users are seeing "Unable to connect to the server. Please check your internet connection and try again." when uploading PDF files. This happens because:
 
-### Margins
-- **Page padding**: 72pt (1 inch) on all sides
-- **Header internal padding**: 24pt horizontal
-- **Body content**: Currently uses 0pt additional padding (just the page's 72pt)
+1. The edge function throws errors when parsing FormData with invalid content-type headers
+2. Error handling catches the error but the generic message isn't helpful
+3. The "Failed to fetch" error on client side could be caused by CORS issues or function errors
 
-The header visually appears to have different margins because its background extends edge-to-edge while text is padded 24pt inside.
+## Root Cause Analysis
+From the edge function logs:
+- `TypeError: Missing content type`
+- `TypeError: Cannot construct MultipartParser: multipart/form-data must provide a boundary`
 
-### Certifications
-- Currently uses the `CertificationItem` component with square bullets (■)
-- Already displays golden bullets, but this confirms correct implementation
+These errors happen at `req.formData()` before proper validation, causing 500 errors.
 
-## Proposed Changes
+## Solution
 
-### 1. Match Body Margins to Header
+### 1. Improve Edge Function Error Handling (`supabase/functions/parse-pdf/index.ts`)
 
-Adjust the page padding and header offsets so the content area has the same visual alignment as the header text (24pt from the colored edge):
+Add better validation before calling `req.formData()` to provide clearer error messages:
 
-| Area | Current | New |
-|------|---------|-----|
-| Page horizontal padding | 72pt | 48pt |
-| Header horizontal margin | -72pt | -48pt |
-| Header top margin | -72pt | -48pt |
-| Page top padding | 72pt | 48pt |
+```text
+Changes:
+- Check Content-Type header exists and is valid before parsing
+- Provide specific error message for missing/invalid content type
+- Ensure CORS headers are always included in all response paths
+```
 
-This creates tighter margins (~0.67 inch) that match what the header appears to have visually.
+### 2. Improve Client-Side Error Messages (`src/lib/parseResume.ts`)
 
-### 2. Golden Bullets Confirmation
-The Certifications section already uses golden square bullets (■) via the `CertificationItem` component. No changes needed unless other sections need similar treatment.
+Provide more helpful error messages based on the server response:
+
+```text
+Changes:
+- Better differentiate between network errors and server errors
+- Show the actual error from the server when available
+- Add retry suggestion for transient failures
+```
 
 ## Files to Modify
 
-### `src/pdf/templates/MinimalTemplate.tsx`
+### `supabase/functions/parse-pdf/index.ts`
 
-**Page styles (lines 6-17)**:
+Add content-type validation before parsing FormData (after line 19, before line 22):
+
 ```typescript
-page: {
-  fontSize: 10,
-  fontFamily: "Helvetica",
-  lineHeight: 1.5,
-  backgroundColor: "#ffffff",
-  paddingTop: 48,      // Was 72
-  paddingBottom: 72,   // Keep bottom for page numbers if needed
-  paddingLeft: 48,     // Was 72
-  paddingRight: 48,    // Was 72
-},
+// Validate content-type header before trying to parse
+const contentType = req.headers.get("content-type");
+if (!contentType || !contentType.includes("multipart/form-data")) {
+  return new Response(
+    JSON.stringify({ error: "Invalid request: Expected multipart/form-data" }),
+    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
 ```
 
-**Header band styles (lines 19-26)**:
+### `src/lib/parseResume.ts`
+
+Update error handling in `parsePDFServerSide()` (lines 85-98):
+
 ```typescript
-headerBand: {
-  backgroundColor: "#1e3a5f",
-  paddingHorizontal: 24,
-  paddingTop: 28,
-  paddingBottom: 24,
-  marginHorizontal: -48,  // Was -72 (matches new page padding)
-  marginTop: -48,         // Was -72
-},
+// Improved error handling with better messages
+} catch (error) {
+  clearTimeout(timeoutId);
+  
+  if (error instanceof Error) {
+    if (error.name === 'AbortError') {
+      throw new Error("PDF parsing timed out. Please try a smaller file.");
+    }
+    // Check if it's a network connectivity issue
+    if (error.message === 'Failed to fetch') {
+      throw new Error("Unable to reach the server. This may be a temporary issue - please try again in a moment.");
+    }
+    throw error;
+  }
+  throw new Error("An unexpected error occurred while parsing the PDF");
+}
 ```
 
-## Visual Result
-- Body text will align with the header name/title text (both 24pt from the page edge visually)
-- The navy header band still extends edge-to-edge
-- Golden square bullets already appear on Certifications
+## Implementation Steps
 
-## Technical Details
+1. Update the edge function with content-type validation
+2. Deploy the edge function
+3. Update client-side error handling for clearer messages
+4. Test with actual PDF upload
 
-| Aspect | Details |
-|--------|---------|
-| Files Changed | 1 (MinimalTemplate.tsx) |
-| Risk Level | Low - only affects PDF layout, no logic changes |
-| Affected Output | Professional template PDF downloads |
+## Expected Outcome
+- Users will see more helpful error messages
+- The "Failed to fetch" scenario will have a clearer message with retry suggestion
+- Invalid requests will get proper 400 errors instead of 500 crashes
+
