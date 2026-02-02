@@ -89,8 +89,9 @@ async function parsePDFServerSide(file: File): Promise<string> {
       if (error.name === 'AbortError') {
         throw new Error("PDF parsing timed out. Please try a smaller file.");
       }
+      // Check if it's a network connectivity issue
       if (error.message === 'Failed to fetch') {
-        throw new Error("Unable to connect to the server. Please check your internet connection and try again.");
+        throw new Error("Unable to reach the server. This may be a temporary issue - please try again in a moment.");
       }
       throw error;
     }
