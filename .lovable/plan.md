@@ -1,94 +1,212 @@
 
 
-# Fix PDF Upload "Unable to Connect to Server" Error
+# Fix Job Search Issues
 
-## Problem
-Users are seeing "Unable to connect to the server. Please check your internet connection and try again." when uploading PDF files. This happens because:
+## Problem Summary
+The job search feature appears not to work for users. Investigation reveals:
+1. The edge function **works correctly** (verified with direct API call - returns valid job results)
+2. The function takes 60-90 seconds due to Firecrawl search + AI processing
+3. Client-side fetch has no timeout handling
+4. Console shows a React ref warning in JobSearchPopup (minor)
 
-1. The edge function throws errors when parsing FormData with invalid content-type headers
-2. Error handling catches the error but the generic message isn't helpful
-3. The "Failed to fetch" error on client side could be caused by CORS issues or function errors
+## Root Causes
 
-## Root Cause Analysis
-From the edge function logs:
-- `TypeError: Missing content type`
-- `TypeError: Cannot construct MultipartParser: multipart/form-data must provide a boundary`
+### 1. Missing Client-Side Timeout
+The `searchJobs()` function in `src/lib/api/jobs.ts` has no timeout handling. Long requests (~90 seconds) may fail silently or confuse users.
 
-These errors happen at `req.formData()` before proper validation, causing 500 errors.
+### 2. No Loading Progress Feedback
+The UI shows "Searching..." but doesn't indicate this is a long operation. Users may think it's stuck.
+
+### 3. Inconsistent CORS Configuration
+The `search-jobs` function uses permissive inline CORS (`"*"`) instead of the shared restricted configuration. This works but is inconsistent with security standards.
+
+### 4. React Ref Warning (Minor)
+`DialogFooter` has a ref warning that should be fixed for cleaner console.
 
 ## Solution
 
-### 1. Improve Edge Function Error Handling (`supabase/functions/parse-pdf/index.ts`)
+### Part 1: Add Timeout and Retry Logic to Client
 
-Add better validation before calling `req.formData()` to provide clearer error messages:
+**File: `src/lib/api/jobs.ts`**
+
+Add a 2-minute timeout with AbortController and improve error messages:
 
 ```text
 Changes:
-- Check Content-Type header exists and is valid before parsing
-- Provide specific error message for missing/invalid content type
-- Ensure CORS headers are always included in all response paths
+- Add AbortController with 120-second timeout
+- Provide clearer error messages for timeout vs network failure
+- Clean up timeout on success
 ```
 
-### 2. Improve Client-Side Error Messages (`src/lib/parseResume.ts`)
+### Part 2: Improve UI Feedback
 
-Provide more helpful error messages based on the server response:
+**File: `src/components/JobSearchPopup.tsx`**
+
+Add visual feedback for long searches:
 
 ```text
 Changes:
-- Better differentiate between network errors and server errors
-- Show the actual error from the server when available
-- Add retry suggestion for transient failures
+- Add a progress message that updates during search
+- Inform users the search may take 30-60 seconds
+- Fix DialogFooter ref warning using asChild pattern
+```
+
+### Part 3: Standardize CORS Configuration
+
+**File: `supabase/functions/search-jobs/index.ts`**
+
+Use the shared CORS module for consistency:
+
+```text
+Changes:
+- Import getCorsHeaders and handleCorsPreflightRequest from shared module
+- Apply dynamic CORS headers based on request origin
+```
+
+## Implementation Details
+
+### `src/lib/api/jobs.ts` Changes
+
+Add timeout handling:
+
+```typescript
+export async function searchJobs(request: JobSearchRequest): Promise<JobSearchResponse> {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    throw new Error("You must be logged in to search for jobs");
+  }
+
+  // Set 2-minute timeout for job search (it involves web scraping + AI processing)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-jobs`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      }
+    );
+
+    clearTimeout(timeoutId);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to search for jobs");
+    }
+
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error("Job search timed out. Please try again.");
+      }
+      if (error.message === 'Failed to fetch') {
+        throw new Error("Unable to reach the server. Please check your connection and try again.");
+      }
+      throw error;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+```
+
+### `src/components/JobSearchPopup.tsx` Changes
+
+Add search progress indicator and fix ref warning:
+
+```typescript
+// Add to state:
+const [searchProgress, setSearchProgress] = useState("");
+
+// In handleSearch, add progress updates:
+const handleSearch = async () => {
+  // ... validation ...
+  
+  setIsSearching(true);
+  setSearchProgress("Searching job boards...");
+  setJobs([]);
+  setHasSearched(false);
+
+  // Progress updates
+  const progressInterval = setInterval(() => {
+    setSearchProgress((prev) => {
+      if (prev === "Searching job boards...") return "Analyzing job listings...";
+      if (prev === "Analyzing job listings...") return "Matching with your profile...";
+      return "Finalizing results...";
+    });
+  }, 15000);
+
+  try {
+    const result = await searchJobs({...});
+    // ... rest of success handling ...
+  } catch (error) {
+    // ... error handling ...
+  } finally {
+    clearInterval(progressInterval);
+    setIsSearching(false);
+    setSearchProgress("");
+  }
+};
+
+// In the loading UI, show progress:
+{isSearching ? (
+  <>
+    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    {searchProgress || "Searching..."}
+  </>
+) : (/* ... */)}
+```
+
+Also add a note below the button when searching:
+```typescript
+{isSearching && (
+  <p className="text-xs text-muted-foreground text-center">
+    This typically takes 30-60 seconds
+  </p>
+)}
+```
+
+### `supabase/functions/search-jobs/index.ts` Changes
+
+Update to use shared CORS configuration:
+
+```typescript
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
+
+serve(async (req) => {
+  // Handle CORS preflight
+  const corsResponse = handleCorsPreflightRequest(req);
+  if (corsResponse) return corsResponse;
+
+  const corsHeaders = getCorsHeaders(req.headers.get("origin"));
+  
+  // ... rest of function, replacing all hardcoded corsHeaders with dynamic one ...
+});
 ```
 
 ## Files to Modify
 
-### `supabase/functions/parse-pdf/index.ts`
-
-Add content-type validation before parsing FormData (after line 19, before line 22):
-
-```typescript
-// Validate content-type header before trying to parse
-const contentType = req.headers.get("content-type");
-if (!contentType || !contentType.includes("multipart/form-data")) {
-  return new Response(
-    JSON.stringify({ error: "Invalid request: Expected multipart/form-data" }),
-    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-  );
-}
-```
-
-### `src/lib/parseResume.ts`
-
-Update error handling in `parsePDFServerSide()` (lines 85-98):
-
-```typescript
-// Improved error handling with better messages
-} catch (error) {
-  clearTimeout(timeoutId);
-  
-  if (error instanceof Error) {
-    if (error.name === 'AbortError') {
-      throw new Error("PDF parsing timed out. Please try a smaller file.");
-    }
-    // Check if it's a network connectivity issue
-    if (error.message === 'Failed to fetch') {
-      throw new Error("Unable to reach the server. This may be a temporary issue - please try again in a moment.");
-    }
-    throw error;
-  }
-  throw new Error("An unexpected error occurred while parsing the PDF");
-}
-```
-
-## Implementation Steps
-
-1. Update the edge function with content-type validation
-2. Deploy the edge function
-3. Update client-side error handling for clearer messages
-4. Test with actual PDF upload
+| File | Changes |
+|------|---------|
+| `src/lib/api/jobs.ts` | Add AbortController timeout (120s), improve error messages |
+| `src/components/JobSearchPopup.tsx` | Add progress indicator, timing note, fix ref warning |
+| `supabase/functions/search-jobs/index.ts` | Use shared CORS module |
 
 ## Expected Outcome
-- Users will see more helpful error messages
-- The "Failed to fetch" scenario will have a clearer message with retry suggestion
-- Invalid requests will get proper 400 errors instead of 500 crashes
+- Users see clear progress during the 30-90 second search
+- Timeout errors are clearly communicated instead of silent failures
+- CORS configuration is consistent with other edge functions
+- Console is cleaner (no ref warning)
 
