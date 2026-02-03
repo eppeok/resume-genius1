@@ -43,6 +43,7 @@ export function JobSearchPopup({
   const [jobs, setJobs] = useState<JobResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [sourcesSearched, setSourcesSearched] = useState<string[]>([]);
+  const [searchProgress, setSearchProgress] = useState("");
 
   // Get job boards based on current location
   const jobBoards = useMemo(() => {
@@ -69,8 +70,18 @@ export function JobSearchPopup({
     }
 
     setIsSearching(true);
+    setSearchProgress("Searching job boards...");
     setJobs([]);
     setHasSearched(false);
+
+    // Progress updates every 15 seconds
+    const progressInterval = setInterval(() => {
+      setSearchProgress((prev) => {
+        if (prev === "Searching job boards...") return "Analyzing job listings...";
+        if (prev === "Analyzing job listings...") return "Matching with your profile...";
+        return "Finalizing results...";
+      });
+    }, 15000);
 
     try {
       const result = await searchJobs({
@@ -105,7 +116,9 @@ export function JobSearchPopup({
         variant: "destructive",
       });
     } finally {
+      clearInterval(progressInterval);
       setIsSearching(false);
+      setSearchProgress("");
     }
   };
 
@@ -186,7 +199,7 @@ export function JobSearchPopup({
                 {isSearching ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Searching...
+                    {searchProgress || "Searching..."}
                   </>
                 ) : (
                   <>
@@ -196,6 +209,11 @@ export function JobSearchPopup({
                 )}
               </Button>
             </DialogFooter>
+            {isSearching && (
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                This typically takes 30-60 seconds
+              </p>
+            )}
           </>
         ) : (
           <div className="flex-1 overflow-y-auto pr-2 -mr-2">

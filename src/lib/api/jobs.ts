@@ -34,26 +34,48 @@ export async function searchJobs(request: JobSearchRequest): Promise<JobSearchRe
     throw new Error("You must be logged in to search for jobs");
   }
 
-  const response = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-jobs`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-      },
-      body: JSON.stringify(request),
+  // Set 2-minute timeout for job search (it involves web scraping + AI processing)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/search-jobs`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify(request),
+        signal: controller.signal,
+      }
+    );
+
+    clearTimeout(timeoutId);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to search for jobs");
     }
-  );
 
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.error || "Failed to search for jobs");
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error("Job search timed out. Please try again.");
+      }
+      if (error.message === 'Failed to fetch') {
+        throw new Error("Unable to reach the server. Please check your connection and try again.");
+      }
+      throw error;
+    }
+    throw new Error("An unexpected error occurred");
   }
-
-  return data;
 }
 
 export interface JobSearchHistory {
