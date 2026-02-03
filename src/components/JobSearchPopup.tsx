@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,14 @@ export function JobSearchPopup({
   const [hasSearched, setHasSearched] = useState(false);
   const [sourcesSearched, setSourcesSearched] = useState<string[]>([]);
   const [searchProgress, setSearchProgress] = useState("");
+
+  // Sync local state with props when popup opens or values change
+  useEffect(() => {
+    if (open) {
+      setTargetRole(initialRole);
+      setLocation(initialLocation);
+    }
+  }, [open, initialRole, initialLocation]);
 
   // Get job boards based on current location
   const jobBoards = useMemo(() => {
