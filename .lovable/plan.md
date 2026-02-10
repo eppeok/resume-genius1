@@ -1,55 +1,36 @@
 
+# Fix PDF Upload "Unable to Reach Server" Error
 
-# Fix Job Search Popup Prefill from Resume Form Data
+## Root Cause
 
-## Problem
+The `parsePDFServerSide()` function in `src/lib/parseResume.ts` is missing the required `apikey` header when calling the parse-pdf backend function. Every other backend call in the app (e.g., job search) includes this header, but the PDF upload does not.
 
-The Job Search popup fields (Target Role and Location) don't properly sync with the values entered in the resume optimization form. The current implementation uses `useState(initialRole)` which only sets the initial value when the component first mounts, not when the props change.
+Without it, the backend gateway rejects the request before it reaches the function. The browser interprets this as "Failed to fetch", which displays as "Unable to reach the server."
 
-This means:
-- If the popup component is rendered but closed, and the parent updates the props, the popup won't show the new values
-- Reopening the popup after changing resume form data shows stale values
+## Fix
 
-## Solution
+### File: `src/lib/parseResume.ts` (line 63-64)
 
-Add a `useEffect` hook that syncs the local state with the incoming props whenever the popup opens or when the prop values change.
-
-## Technical Changes
-
-### File: `src/components/JobSearchPopup.tsx`
-
-Add a `useEffect` hook after the state declarations to keep local state in sync with props:
+Add the missing `apikey` header to the fetch call:
 
 ```typescript
-// Add useEffect import (already has useState, useMemo)
-import { useState, useMemo, useEffect } from "react";
+// Current (broken):
+headers: {
+  Authorization: `Bearer ${session.access_token}`,
+},
 
-// After line 46, add this effect:
-// Sync local state with props when popup opens or values change
-useEffect(() => {
-  if (open) {
-    setTargetRole(initialRole);
-    setLocation(initialLocation);
-  }
-}, [open, initialRole, initialLocation]);
+// Fixed:
+headers: {
+  Authorization: `Bearer ${session.access_token}`,
+  apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+},
 ```
 
-This ensures that:
-1. When the popup opens (`open` becomes true), the fields are populated with the latest values from the resume form
-2. If the user closes and reopens with different resume data, it syncs correctly
-3. The user can still edit the values if they want to search for something different
+That is the only change needed. No edge function changes required.
 
-## Summary of Changes
+## Why This Fixes It
 
-| File | Change |
-|------|--------|
-| `src/components/JobSearchPopup.tsx` | Add `useEffect` import and sync hook to update local state from props when popup opens |
-
-## Expected Behavior After Fix
-
-1. User fills in Target Role "Digital Marketing Manager" and Location "Mumbai, India" in the resume form
-2. User optimizes resume
-3. User clicks "Find Matching Jobs"
-4. Popup opens with those exact values prefilled
-5. If user closes popup and changes resume form data, reopening the popup shows the new values
-
+The backend gateway requires the `apikey` header on all requests to route them to edge functions. The preflight OPTIONS request succeeds (it doesn't need apikey), but the actual POST is rejected at the gateway level -- before it reaches the parse-pdf function. This is why:
+- Edge function logs show zero POST requests from the browser
+- The browser gets a network-level failure ("Failed to fetch")
+- The user sees "Unable to reach the server"
